@@ -1,10 +1,79 @@
+/* Monday Weekly — Tailwind index.css (dark-mode + bilingual tweaks) */
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Medium 风格的小优化（可保留/调整） */
-:root { color-scheme: light; }
+/* Color scheme hooks (Tailwind darkMode: 'class') */
+:root { color-scheme: light dark; }
+html { color-scheme: light; }
+html.dark { color-scheme: dark; }
+
+/* App sizing */
 html, body, #root { height: 100%; }
-body {
-  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+
+/* Base tweaks */
+@layer base {
+  html { @apply bg-white text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100; }
+  body {
+    @apply antialiased;
+    font-feature-settings: "kern","liga","calt";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  a { @apply text-neutral-900 dark:text-neutral-100; }
+  ::selection { @apply bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900; }
+  img, svg, video, canvas, audio, iframe, embed, object { display: block; max-width: 100%; }
+  img { height: auto; }
+}
+
+/* Components */
+@layer components {
+  .btn { @apply inline-flex items-center gap-2 rounded-full border border-neutral-300 px-3 py-1.5 text-sm hover:bg-neutral-50 dark:border-neutral-600 dark:hover:bg-neutral-800; }
+  .card { @apply rounded-2xl border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900; }
+  .field { @apply rounded-full border border-neutral-300 bg-white py-2 px-3 text-sm outline-none placeholder:text-neutral-400 focus:border-neutral-400 dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-100; }
+
+  /* Bilingual line helpers (optional utility classes) */
+  .cn-line { /* Chinese line */
+    font-size: 16px; /* baseline */
+    line-height: 1.75;
+    @apply text-neutral-900 dark:text-neutral-100;
+  }
+  .en-line { /* English line: 2px smaller, serif, italic, lighter */
+    font-size: 14px;
+    line-height: 1.75;
+    font-style: italic;
+    font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+    @apply text-neutral-700 dark:text-neutral-300;
+  }
+
+  .why-box { @apply rounded-xl bg-neutral-50 p-4 text-[15px] text-neutral-800 dark:bg-neutral-900 dark:text-neutral-200; }
+}
+
+/* Utilities */
+@layer utilities {
+  .no-tap-highlight { -webkit-tap-highlight-color: transparent; }
+}
+
+/* Scrollbar styling */
+* { scrollbar-width: thin; scrollbar-color: hsl(0 0% 70%) transparent; }
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-thumb {
+  background-color: rgba(115,115,115,.5);
+  border-radius: 9999px;
+  border: 2px solid transparent; /* leave some gap */
+  background-clip: padding-box;
+}
+*::-webkit-scrollbar-track { background: transparent; }
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+}
+
+/* Print tweaks */
+@media print {
+  html { background: #fff !important; }
+  body { color: #000; }
+  a[href]:after { content: " (" attr(href) ")"; font-size: 10px; }
 }
