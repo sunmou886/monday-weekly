@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Calendar, Clock, Link as LinkIcon, Share2, Upload, Download, Search, ChevronLeft, ExternalLink, Globe, Info } from "lucide-react";
+import { Calendar, Clock, Link as LinkIcon, Share2, Upload, Download, Search, ChevronLeft, ExternalLink, Globe, Info, User } from "lucide-react";
 
 /**
  * Monday Weekly — Medium-style archive & post page (single-file React app)
@@ -65,7 +65,7 @@ import { Calendar, Clock, Link as LinkIcon, Share2, Upload, Download, Search, Ch
  */
 
 // --- Utilities --------------------------------------------------------------
-const TZ_LABEL = "SGT"; // Display label only
+const TZ_LABEL = "SGT"; // Displayed only in time labels (kept for accuracy in key info rows)
 const STORAGE_KEY = "monday.weekly.data.v1";
 
 /** Format YYYY-MM-DD → Mon DD, YYYY */
@@ -190,7 +190,7 @@ function Header({ onImport, data, setData }) {
       <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
         <div className="flex items-center gap-3">
           <Logo />
-          <div className="hidden text-sm text-neutral-500 sm:block">SGT • Medium-style weekly archive</div>
+          {/* 删除原先的副标题（SGT • Medium-style weekly archive） */}
         </div>
         <div className="flex items-center gap-2">
           <button
@@ -281,7 +281,8 @@ function IssueCard({ issue, onClick }) {
           {issue.publishedAt && (
             <span className="inline-flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> {fmtDateTime(issue.publishedAt)}</span>
           )}
-          <span className="ml-auto inline-flex items-center gap-1"><Info className="h-3.5 w-3.5" /> SGT</span>
+          {/* 右侧标识由 SGT 改成 Eric Sun，图标改为 User */}
+          <span className="ml-auto inline-flex items-center gap-1"><User className="h-3.5 w-3.5" /> Eric Sun</span>
         </div>
         {(issue.summaryCN || issue.summaryEN) && (
           <p className="line-clamp-2 text-[15px] text-neutral-700">{issue.summaryCN || issue.summaryEN}</p>
@@ -306,7 +307,8 @@ function IssuePage({ issue, onBack }) {
         <div className="mb-6 flex flex-wrap items-center gap-3 text-sm text-neutral-500">
           <span className="inline-flex items-center gap-1"><Calendar className="h-4 w-4" /> {fmtDate(issue.start)} — {fmtDate(issue.end)}</span>
           {issue.publishedAt && <span className="inline-flex items-center gap-1"><Clock className="h-4 w-4" /> {fmtDateTime(issue.publishedAt)}</span>}
-          <span className="inline-flex items-center gap-1"><Globe className="h-4 w-4" /> {TZ_LABEL}</span>
+          {/* 这里把 Globe + SGT 改为 User + Eric Sun */}
+          <span className="inline-flex items-center gap-1"><User className="h-4 w-4" /> Eric Sun</span>
           <button onClick={share} className="ml-auto inline-flex items-center gap-1 rounded-full border border-neutral-300 px-3 py-1 text-xs hover:bg-neutral-50">
             <Share2 className="h-3.5 w-3.5" /> Share
           </button>
