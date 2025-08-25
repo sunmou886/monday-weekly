@@ -112,6 +112,20 @@ export default function MondayWeekly() {
   const { route, params, go } = useHashRouter();
   const [showImporter, setShowImporter] = useState(false);
 
+  // Load remote content from /content/index.json if present, then merge with local
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch('/content/index.json', { cache: 'no-store' });
+        if (!res.ok) return; // No remote file, skip
+        const remote = await res.json();
+        if (remote && Array.isArray(remote.issues)) {
+          setData(prev => ({ issues: mergeIssues(prev?.issues || [], remote.issues) }));
+        }
+      } catch (_) { /* ignore network/JSON errors silently */ }
+    })();
+  }, []);
+
   // Derived
   const issuesSorted = useMemo(() => [...(data?.issues || [])].sort((a,b) => (new Date(b.start) - new Date(a.start))), [data]);
   const currentIssue = useMemo(() => {
@@ -557,6 +571,15 @@ function TestPanel() {
   results.push(test("fmtDate basic", () => typeof fmtDate("2025-08-18") === "string" && fmtDate("2025-08-18").length > 0));
   // Test: fmtDateTime
   results.push(test("fmtDateTime basic", () => typeof fmtDateTime("2025-08-25T10:00:00+08:00") === "string"));
+  // Test: mergeIssues
+  results.push(test("mergeIssues merges unique by id, remote wins", () => {
+    const local = [{ id: 'A', start: '2025-01-01' }, { id: 'B', start: '2025-01-02' }];
+    const remote = [{ id: 'B', start: '2025-02-02', marker: 'remote' }, { id: 'C', start: '2025-01-03' }];
+    const merged = mergeIssues(local, remote);
+    const ids = merged.map(x => x.id).sort().join(',');
+    const b = merged.find(x => x.id==='B');
+    return ids === 'A,B,C' && b.marker === 'remote';
+  }));
 
   const okCount = results.filter(r => r.ok).length;
 
@@ -590,4 +613,12 @@ function test(name, fn) {
 
 function deepEqual(a, b) {
   return JSON.stringify(a) === JSON.stringify(b);
+}
+
+// Merge helper is exported for tests
+function mergeIssues(localIssues = [], remoteIssues = []) {
+  const map = new Map();
+  for (const i of localIssues) if (i?.id) map.set(i.id, i);
+  for (const i of remoteIssues) if (i?.id) map.set(i.id, i); // remote overwrites local on collision
+  return Array.from(map.values());
 }
