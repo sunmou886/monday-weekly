@@ -1,0 +1,593 @@
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { Calendar, Clock, Link as LinkIcon, Share2, Upload, Download, Search, ChevronLeft, ExternalLink, Globe, Info } from "lucide-react";
+
+/**
+ * Monday Weekly — Medium-style archive & post page (single-file React app)
+ * -------------------------------------------------------------
+ * - Medium-like typography and spacing (Tailwind CSS)
+ * - Archive of weekly issues + single-issue reader (hash routing)
+ * - Bilingual (CN first, EN second) presentation per item
+ * - Each item supports: title, facts (CN/EN), key info row, image (src/caption/credit/url), links (official + media), and Why it matters (CN/EN)
+ * - Import/Export JSON (for weekly content ops); localStorage persistence
+ * - Permalinks: #/issue/{issueId} where issueId = YYYY-MM-DD_YYYY-MM-DD (SGT week window)
+ * - Copy-link share and subtle hover interactions in Medium style
+ *
+ * HOW TO USE
+ * 1) Deploy: This file works in any React/Vite/Next app. Make it your page component (e.g., src/App.jsx or pages/index.tsx).
+ * 2) Load content: Click "Import / 导入" in the header and paste a JSON payload using the schema below.
+ * 3) Share: Click a card → you get a permalink (hash). Use the Share button to copy.
+ * 4) Archive: New weeks simply import another issue object; the archive updates automatically.
+ * 5) Export: Click Export to download the full JSON for versioning in Git.
+ *
+ * JSON SCHEMA (example)
+ * {
+ *   "issues": [
+ *     {
+ *       "id": "2025-08-18_2025-08-24",
+ *       "start": "2025-08-18",  // SGT week start (YYYY-MM-DD)
+ *       "end": "2025-08-24",    // SGT week end
+ *       "publishedAt": "2025-08-25T10:00:00+08:00", // intended publish time (SGT)
+ *       "title": "2025-08-18 至 2025-08-24 周报 / Weekly",
+ *       "summaryCN": "本周经核的科技/IT大事件精选。",
+ *       "summaryEN": "Curated, verified tech/IT developments of the week.",
+ *       "items": [
+ *         {
+ *           "title": "标题（≤16字/≤12英词，事实描述）",
+ *           "factsCN": ["中文事实1–2句"],
+ *           "factsEN": ["English facts 1–2 sentences"],
+ *           "keyInfo": {
+ *             "timeSGT": "2025-08-20",
+ *             "actor": "Apple",
+ *             "market": "Global",
+ *             "impact": "iOS/iPadOS/macOS；CVE-2025-43300"
+ *           },
+ *           "image": {
+ *             "src": "https://example.com/image.jpg", // official or reputable media only
+ *             "alt": "Apple security update page",
+ *             "caption": "Apple 紧急安全更新 / Apple security update",
+ *             "credit": "Apple / Reuters",
+ *             "href": "https://apple.com/security-updates"
+ *           },
+ *           "links": [
+ *             {"label": "官方 / Official", "url": "https://support.apple.com/..."},
+ *             {"label": "权威媒体 / Media", "url": "https://www.reuters.com/..."}
+ *           ],
+ *           "whyCN": "影响主流平台且在野利用，需尽快更新。",
+ *           "whyEN": "Cross-platform zero-day with confirmed exploitation requires rapid patching.",
+ *           "updates": [
+ *             {"cn": "有何变化：补充CISA KEV。", "en": "What changed: Added CISA KEV entry."}
+ *           ]
+ *         }
+ *       ]
+ *     }
+ *   ]
+ * }
+ */
+
+// --- Utilities --------------------------------------------------------------
+const TZ_LABEL = "SGT"; // Display label only
+const STORAGE_KEY = "monday.weekly.data.v1";
+
+/** Format YYYY-MM-DD → Mon DD, YYYY */
+function fmtDate(iso) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  return d.toLocaleDateString("en-SG", { year: "numeric", month: "short", day: "2-digit" });
+}
+
+/** Humanize publish datetime */
+function fmtDateTime(iso) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  return d.toLocaleString("en-SG", {
+    year: "numeric", month: "short", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", hour12: false,
+    timeZone: "Asia/Singapore",
+    timeZoneName: "short"
+  });
+}
+
+function classNames(...xs) { return xs.filter(Boolean).join(" "); }
+
+// --- Bootstrap payload ------------------------------------------------------
+const bootstrapData = {
+  issues: [
+    {
+      id: "2025-08-18_2025-08-24",
+      start: "2025-08-18",
+      end: "2025-08-24",
+      publishedAt: "2025-08-25T10:00:00+08:00",
+      title: "2025-08-18 至 2025-08-24 周报 / Weekly",
+      summaryCN: "本周经严核的科技/IT大事件精选。",
+      summaryEN: "Verified, cross-sourced tech/IT developments for the week.",
+      items: []
+    }
+  ]
+};
+
+// --- Root Component ---------------------------------------------------------
+export default function MondayWeekly() {
+  const [data, setData] = useLocalData(bootstrapData);
+  const [q, setQ] = useState("");
+  const { route, params, go } = useHashRouter();
+  const [showImporter, setShowImporter] = useState(false);
+
+  // Derived
+  const issuesSorted = useMemo(() => [...(data?.issues || [])].sort((a,b) => (new Date(b.start) - new Date(a.start))), [data]);
+  const currentIssue = useMemo(() => {
+    if (route !== "issue") return null;
+    const id = params?.[0];
+    return issuesSorted.find(i => i.id === id) || null;
+  }, [route, params, issuesSorted]);
+
+  const filteredIssues = useMemo(() => {
+    if (!q) return issuesSorted;
+    const t = q.toLowerCase();
+    return issuesSorted.filter(issue => (
+      issue.title?.toLowerCase().includes(t) ||
+      issue.items?.some(item => item.title?.toLowerCase().includes(t) ||
+        item.factsEN?.join(" ").toLowerCase().includes(t) ||
+        item.factsCN?.join(" ").toLowerCase().includes(t))
+    ));
+  }, [q, issuesSorted]);
+
+  return (
+    <div className="min-h-screen bg-white text-neutral-900">
+      <Header onImport={() => setShowImporter(true)} data={data} setData={setData} />
+
+      <main className="mx-auto w-full max-w-5xl px-4 sm:px-6 lg:px-8">
+        {route === "issue" && currentIssue ? (
+          <IssuePage issue={currentIssue} onBack={() => go("/")} />
+        ) : (
+          <ArchivePage
+            issues={filteredIssues}
+            q={q}
+            setQ={setQ}
+            openIssue={(id) => go(`/issue/${id}`)}
+          />
+        )}
+      </main>
+
+      {showImporter && (
+        <Importer
+          close={() => setShowImporter(false)}
+          onImport={(payload) => {
+            // Merge strategy: if id exists, replace; else push
+            if (!payload?.issues) return;
+            setData(prev => {
+              const existing = new Map((prev?.issues||[]).map(i => [i.id, i]));
+              for (const issue of payload.issues) existing.set(issue.id, issue);
+              return { issues: [...existing.values()] };
+            });
+          }}
+        />
+      )}
+
+      <Footer />
+      <TestPanel />
+    </div>
+  );
+}
+
+// --- Header -----------------------------------------------------------------
+function Header({ onImport, data, setData }) {
+  return (
+    <header className="sticky top-0 z-40 border-b border-neutral-200 bg-white/80 backdrop-blur">
+      <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
+        <div className="flex items-center gap-3">
+          <Logo />
+          <div className="hidden text-sm text-neutral-500 sm:block">SGT • Medium-style weekly archive</div>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => copy(window.location.href)}
+            className="inline-flex items-center gap-2 rounded-full border border-neutral-300 px-3 py-1.5 text-sm hover:bg-neutral-50"
+            title="Copy page link"
+          >
+            <Share2 className="h-4 w-4" /> Share
+          </button>
+          <button
+            onClick={onImport}
+            className="inline-flex items-center gap-2 rounded-full border border-neutral-300 px-3 py-1.5 text-sm hover:bg-neutral-50"
+            title="Import JSON"
+          >
+            <Upload className="h-4 w-4" /> Import / 导入
+          </button>
+          <button
+            onClick={() => downloadJSON(STORAGE_KEY, data)}
+            className="inline-flex items-center gap-2 rounded-full border border-neutral-300 px-3 py-1.5 text-sm hover:bg-neutral-50"
+            title="Export JSON"
+          >
+            <Download className="h-4 w-4" /> Export
+          </button>
+        </div>
+      </div>
+    </header>
+  );
+}
+
+function Logo() {
+  return (
+    <a href="#/" className="group inline-flex items-center gap-2">
+      <div className="rounded-sm bg-black px-2 py-1 text-xs font-semibold tracking-widest text-white">MON</div>
+      <div className="text-xl font-serif tracking-tight group-hover:opacity-80">Monday Weekly</div>
+    </a>
+  );
+}
+
+// --- Archive Page -----------------------------------------------------------
+function ArchivePage({ issues, q, setQ, openIssue }) {
+  return (
+    <section className="py-8 sm:py-10">
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-2xl font-serif sm:text-3xl">Archive / 存档</h1>
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-neutral-400" />
+          <input
+            value={q}
+            onChange={e => setQ(e.target.value)}
+            placeholder="Search title or facts…"
+            className="w-64 rounded-full border border-neutral-300 bg-white py-2 pl-8 pr-3 text-sm outline-none ring-0 placeholder:text-neutral-400 focus:border-neutral-400"
+          />
+        </div>
+      </div>
+
+      <div className="grid gap-6 sm:grid-cols-2">
+        {issues.map(issue => (
+          <IssueCard key={issue.id} issue={issue} onClick={() => openIssue(issue.id)} />
+        ))}
+        {issues.length === 0 && (
+          <div className="rounded-2xl border border-dashed border-neutral-300 p-10 text-center text-neutral-500">
+            No issues match your search.
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function IssueCard({ issue, onClick }) {
+  const firstImage = issue.items?.find(i => i.image?.src)?.image?.src;
+  return (
+    <article
+      onClick={onClick}
+      className="group cursor-pointer overflow-hidden rounded-2xl border border-neutral-200 bg-white transition hover:shadow-md"
+    >
+      <div className="aspect-[16/9] w-full bg-neutral-100">
+        {firstImage ? (
+          <img src={firstImage} alt="cover" className="h-full w-full object-cover transition group-hover:scale-[1.01]" />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center text-neutral-400">No cover</div>
+        )}
+      </div>
+      <div className="space-y-2 p-5">
+        <h3 className="line-clamp-2 font-serif text-lg leading-snug sm:text-xl">{issue.title || `${fmtDate(issue.start)} — ${fmtDate(issue.end)}`}</h3>
+        <div className="flex items-center gap-3 text-xs text-neutral-500">
+          <span className="inline-flex items-center gap-1"><Calendar className="h-3.5 w-3.5" /> {fmtDate(issue.start)} — {fmtDate(issue.end)}</span>
+          {issue.publishedAt && (
+            <span className="inline-flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> {fmtDateTime(issue.publishedAt)}</span>
+          )}
+          <span className="ml-auto inline-flex items-center gap-1"><Info className="h-3.5 w-3.5" /> SGT</span>
+        </div>
+        {(issue.summaryCN || issue.summaryEN) && (
+          <p className="line-clamp-2 text-[15px] text-neutral-700">{issue.summaryCN || issue.summaryEN}</p>
+        )}
+        <div className="pt-2 text-sm text-neutral-500">{issue.items?.length || 0} items</div>
+      </div>
+    </article>
+  );
+}
+
+// --- Issue Page -------------------------------------------------------------
+function IssuePage({ issue, onBack }) {
+  const share = () => copy(window.location.href);
+  return (
+    <article className="py-8 sm:py-10">
+      <button onClick={onBack} className="mb-6 inline-flex items-center gap-1.5 text-sm text-neutral-600 hover:text-neutral-900">
+        <ChevronLeft className="h-4 w-4" /> Back / 返回
+      </button>
+
+      <header className="mx-auto max-w-3xl">
+        <h1 className="mb-3 font-serif text-3xl leading-tight sm:text-4xl">{issue.title || `${fmtDate(issue.start)} — ${fmtDate(issue.end)} Weekly`}</h1>
+        <div className="mb-6 flex flex-wrap items-center gap-3 text-sm text-neutral-500">
+          <span className="inline-flex items-center gap-1"><Calendar className="h-4 w-4" /> {fmtDate(issue.start)} — {fmtDate(issue.end)}</span>
+          {issue.publishedAt && <span className="inline-flex items-center gap-1"><Clock className="h-4 w-4" /> {fmtDateTime(issue.publishedAt)}</span>}
+          <span className="inline-flex items-center gap-1"><Globe className="h-4 w-4" /> {TZ_LABEL}</span>
+          <button onClick={share} className="ml-auto inline-flex items-center gap-1 rounded-full border border-neutral-300 px-3 py-1 text-xs hover:bg-neutral-50">
+            <Share2 className="h-3.5 w-3.5" /> Share
+          </button>
+        </div>
+        {(issue.summaryCN || issue.summaryEN) && (
+          <p className="mb-8 text-[17px] leading-7 text-neutral-700">{issue.summaryCN} <span className="text-neutral-400">/</span> {issue.summaryEN}</p>
+        )}
+      </header>
+
+      <div className="mx-auto max-w-3xl space-y-10">
+        {issue.items?.length ? issue.items.map((item, idx) => (
+          <ItemBlock key={idx} item={item} idx={idx+1} />
+        )) : (
+          <div className="rounded-2xl border border-dashed border-neutral-300 p-8 text-center text-neutral-500">
+            No items yet. Use "Import / 导入" to add content for this week.
+          </div>
+        )}
+      </div>
+    </article>
+  );
+}
+
+function ItemBlock({ item, idx }) {
+  return (
+    <section className="space-y-4">
+      <h2 className="font-serif text-2xl leading-snug">
+        <span className="mr-2 text-neutral-400">{String(idx).padStart(2,'0')}</span>
+        {item.title}
+      </h2>
+
+      {/* Facts */}
+      <div className="space-y-2">
+        {Array.isArray(item.factsCN) && item.factsCN.map((s, i) => (
+          <p key={`cn-${i}`} className="text-[16.5px] leading-7 text-neutral-900">{s}</p>
+        ))}
+        {Array.isArray(item.factsEN) && item.factsEN.map((s, i) => (
+          <p key={`en-${i}`} className="text-[16px] leading-7 text-neutral-700">{s}</p>
+        ))}
+      </div>
+
+      {/* Key info row */}
+      {item.keyInfo && (
+        <KeyInfoRow info={item.keyInfo} />
+      )}
+
+      {/* Image */}
+      {item.image?.src && (
+        <figure className="overflow-hidden rounded-2xl border border-neutral-200">
+          <a href={item.image.href || item.image.src} target="_blank" rel="noreferrer">
+            <img src={item.image.src} alt={item.image.alt || "image"} className="w-full object-cover" />
+          </a>
+          {(item.image.caption || item.image.credit) && (
+            <figcaption className="flex items-center justify-between gap-3 bg-neutral-50 px-4 py-2 text-xs text-neutral-600">
+              <span className="truncate">{item.image.caption}</span>
+              <a
+                className="shrink-0 items-center gap-1 text-neutral-500 hover:text-neutral-800"
+                href={item.image.href || item.image.src}
+                target="_blank" rel="noreferrer"
+              >
+                {item.image.credit} <ExternalLink className="ml-1 inline h-3.5 w-3.5" />
+              </a>
+            </figcaption>
+          )}
+        </figure>
+      )}
+
+      {/* Links / Citations */}
+      {Array.isArray(item.links) && item.links.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {item.links.map((l, i) => (
+            <a key={i} href={l.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 rounded-full border border-neutral-300 px-3 py-1 text-xs hover:bg-neutral-50">
+              <LinkIcon className="h-3.5 w-3.5" /> {l.label || "Link"}
+            </a>
+          ))}
+        </div>
+      )}
+
+      {/* Why it matters */}
+      {(item.whyCN || item.whyEN) && (
+        <div className="rounded-xl bg-neutral-50 p-4 text-[15px] text-neutral-800">
+          <div className="font-medium">这为什么重要 / Why it matters</div>
+          <p className="mt-1">{item.whyCN}</p>
+          <p className="text-neutral-600">{item.whyEN}</p>
+        </div>
+      )}
+
+      {/* Updates */}
+      {Array.isArray(item.updates) && item.updates.length > 0 && (
+        <div className="rounded-xl border border-neutral-200 p-4 text-[14.5px]">
+          <div className="mb-1 font-medium">有何变化 / What changed</div>
+          <ul className="list-disc space-y-1 pl-5 text-neutral-700">
+            {item.updates.map((u, i) => (
+              <li key={i}>
+                <span className="text-neutral-900">{u.cn}</span>
+                {u.en && <span className="text-neutral-600"> / {u.en}</span>}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <hr className="mt-6 border-neutral-200" />
+    </section>
+  );
+}
+
+function KeyInfoRow({ info }) {
+  return (
+    <div className="flex flex-wrap items-center gap-2 rounded-xl bg-neutral-50 px-3 py-2 text-xs text-neutral-700">
+      {info.timeSGT && <Badge icon={<Clock className="h-3.5 w-3.5" />} label={`时间(${TZ_LABEL})：${info.timeSGT}`} />}
+      {info.actor && <Badge icon={<Info className="h-3.5 w-3.5" />} label={`主体：${info.actor}`} />}
+      {info.market && <Badge icon={<Globe className="h-3.5 w-3.5" />} label={`地区/市场：${info.market}`} />}
+      {info.impact && <Badge icon={<Info className="h-3.5 w-3.5" />} label={`影响：${info.impact}`} />}
+    </div>
+  );
+}
+
+function Badge({ icon, label }) {
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 bg-white px-2.5 py-1">
+      {icon}
+      <span>{label}</span>
+    </span>
+  );
+}
+
+// --- Importer Modal ---------------------------------------------------------
+function Importer({ close, onImport }) {
+  const [text, setText] = useState("");
+  const [error, setError] = useState("");
+  const dialogRef = useRef(null);
+
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === "Escape") close(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [close]);
+
+  const IMPORT_PLACEHOLDER = `{
+  "issues": [ { ... } ]
+}`;
+
+  const handleImport = () => {
+    setError("");
+    try {
+      const payload = JSON.parse(text);
+      // Quick validation
+      if (!payload || !Array.isArray(payload.issues)) throw new Error("Missing issues array");
+      for (const issue of payload.issues) {
+        if (!issue.id) throw new Error("Each issue requires an id (YYYY-MM-DD_YYYY-MM-DD)");
+      }
+      onImport(payload);
+      close();
+    } catch (e) {
+      // Common hint for bad escapes
+      const hasBackslash = /\\[^"\\/bfnrtu]/.test(text);
+      const hint = hasBackslash ? " Hint: check backslashes (use \\ or valid \\uXXXX escapes)." : "";
+      setError(e.message + hint);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+      <div ref={dialogRef} className="w-full max-w-3xl rounded-2xl bg-white p-6 shadow-xl">
+        <div className="mb-4 flex items-center justify-between">
+          <h3 className="text-lg font-semibold">Import JSON / 导入周报数据</h3>
+          <button onClick={close} className="rounded-full border border-neutral-300 px-2 py-1 text-xs hover:bg-neutral-50">Close</button>
+        </div>
+        <p className="mb-3 text-sm text-neutral-600">Paste a JSON payload following the schema in the source code comment. Existing issues with the same id will be replaced.</p>
+        <textarea
+          value={text}
+          onChange={e => setText(e.target.value)}
+          placeholder={IMPORT_PLACEHOLDER}
+          className="h-64 w-full resize-y rounded-xl border border-neutral-300 bg-neutral-50 p-3 font-mono text-xs focus:border-neutral-400"
+        />
+        {error && <div className="mt-2 text-sm text-red-600">{error}</div>}
+        <div className="mt-4 flex justify-end gap-2">
+          <button onClick={close} className="rounded-full border border-neutral-300 px-3 py-1.5 text-sm hover:bg-neutral-50">Cancel</button>
+          <button onClick={handleImport} className="rounded-full bg-black px-3 py-1.5 text-sm text-white hover:bg-neutral-800">Import</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// --- Footer -----------------------------------------------------------------
+function Footer() {
+  return (
+    <footer className="border-t border-neutral-200 py-8">
+      <div className="mx-auto flex w-full max-w-5xl flex-col items-start justify-between gap-4 px-4 sm:flex-row sm:items-center sm:px-6 lg:px-8">
+        <div className="text-sm text-neutral-500">© {new Date().getFullYear()} Monday. Medium-inspired UI. SGT timezone.</div>
+        <div className="text-xs text-neutral-500">Content: bilingual; each sentence verified with official + reputable media sources. Images from official / reputable outlets only.</div>
+      </div>
+    </footer>
+  );
+}
+
+// --- Hooks & helpers --------------------------------------------------------
+function useLocalData(initial) {
+  const [state, setState] = useState(() => {
+    try {
+      const s = localStorage.getItem(STORAGE_KEY);
+      return s ? JSON.parse(s) : initial;
+    } catch (_) { return initial; }
+  });
+  useEffect(() => {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (_) {}
+  }, [state]);
+  return [state, setState];
+}
+
+function useHashRouter() {
+  const [route, setRoute] = useState(() => parseHash());
+  useEffect(() => {
+    const onHash = () => setRoute(parseHash());
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
+  }, []);
+  const go = (to) => { window.location.hash = `#${to.replace(/^#/, "")}`; };
+  return { route: route.name, params: route.params, go };
+}
+
+function parseHash() {
+  return parseHashFromString(window.location.hash);
+}
+
+function parseHashFromString(hashRaw) {
+  const hash = String(hashRaw || "").replace(/^#/, "");
+  const parts = hash.split("/").filter(Boolean);
+  if (parts[0] === "issue" && parts[1]) return { name: "issue", params: [parts[1]] };
+  return { name: "home", params: [] };
+}
+
+function copy(text) {
+  if (!navigator?.clipboard) {
+    const ta = document.createElement("textarea");
+    ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove();
+    return;
+  }
+  navigator.clipboard.writeText(text);
+}
+
+function downloadJSON(filenameBase, data) {
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = `${filenameBase}.json`; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+// --- Minimal test cases (rendered only with ?debug=1) ----------------------
+function TestPanel() {
+  const [open, setOpen] = useState(false);
+  const enabled = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("debug") === "1";
+  if (!enabled) return null;
+
+  const results = [];
+  // Test: parseHashFromString
+  results.push(test("parseHashFromString home", () => deepEqual(parseHashFromString(""), { name: "home", params: [] })));
+  results.push(test("parseHashFromString issue", () => deepEqual(parseHashFromString("#/issue/2025-08-18_2025-08-24"), { name: "issue", params: ["2025-08-18_2025-08-24"] })));
+  // Test: fmtDate
+  results.push(test("fmtDate basic", () => typeof fmtDate("2025-08-18") === "string" && fmtDate("2025-08-18").length > 0));
+  // Test: fmtDateTime
+  results.push(test("fmtDateTime basic", () => typeof fmtDateTime("2025-08-25T10:00:00+08:00") === "string"));
+
+  const okCount = results.filter(r => r.ok).length;
+
+  return (
+    <div className="fixed bottom-4 right-4 z-50 w-72 rounded-2xl border border-neutral-300 bg-white p-3 shadow-lg">
+      <button onClick={() => setOpen(v => !v)} className="mb-2 w-full rounded-lg bg-black px-3 py-1.5 text-sm text-white">
+        Tests ({okCount}/{results.length}) {open ? "▲" : "▼"}
+      </button>
+      {open && (
+        <ul className="space-y-1 text-xs">
+          {results.map((r, i) => (
+            <li key={i} className={r.ok ? "text-green-700" : "text-red-700"}>
+              {r.ok ? "✓" : "✗"} {r.name} {r.ok ? "" : `— ${r.msg}`}
+            </li>
+          ))}
+        </ul>
+      )}
+      <div className="mt-2 text-[10px] text-neutral-500">Add <code>?debug=1</code> to the URL to see tests.</div>
+    </div>
+  );
+}
+
+function test(name, fn) {
+  try {
+    const r = fn();
+    return { name, ok: !!r, msg: r ? "" : "returned falsy" };
+  } catch (e) {
+    return { name, ok: false, msg: e?.message || String(e) };
+  }
+}
+
+function deepEqual(a, b) {
+  return JSON.stringify(a) === JSON.stringify(b);
+}
