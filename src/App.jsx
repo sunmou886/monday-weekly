@@ -12,7 +12,7 @@ import { Calendar, Clock, Link as LinkIcon, Share2, Upload, Download, Search, Ch
  * - Import/Export JSON (for weekly content ops); localStorage persistence
  * - Permalinks: #/issue/{issueId} where issueId = YYYY-MM-DD_YYYY-MM-DD (SGT week window)
  * - Copy-link share and subtle hover interactions in Medium style
- * - Theme: system / light / dark with manual toggle, persists per device
+ * - Theme: system / light / dark with manual segmented toggle, persists per device
  * - Admin controls (Share/Import/Export) hidden unless key via ?key=... matches VITE_ADMIN_KEY
  */
 
@@ -111,7 +111,7 @@ export default function MondayWeekly() {
   const { route, params, go } = useHashRouter();
   const [showImporter, setShowImporter] = useState(false);
   const isAdmin = useAdmin();
-  const { theme, cycle } = useTheme();
+  const { theme, setTheme } = useTheme();
 
   // Load remote content from /content/index.json if present, then merge with local
   useEffect(() => {
@@ -148,7 +148,7 @@ export default function MondayWeekly() {
 
   return (
     <div className="min-h-screen bg-white text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100">
-      <Header onImport={() => setShowImporter(true)} data={data} setData={setData} isAdmin={isAdmin} theme={theme} onThemeCycle={cycle} />
+      <Header onImport={() => setShowImporter(true)} data={data} setData={setData} isAdmin={isAdmin} />
 
       <main className="mx-auto w-full max-w-5xl px-4 sm:px-6 lg:px-8">
         {route === "issue" && currentIssue ? (
@@ -177,6 +177,9 @@ export default function MondayWeekly() {
         />
       )}
 
+      {/* Floating segmented theme switcher (always visible) */}
+      <ThemeSwitch theme={theme} onChange={setTheme} />
+
       <Footer />
       <TestPanel />
     </div>
@@ -184,49 +187,39 @@ export default function MondayWeekly() {
 }
 
 // --- Header -----------------------------------------------------------------
-function Header({ onImport, data, setData, isAdmin, theme, onThemeCycle }) {
+function Header({ onImport, data, setData, isAdmin }) {
   return (
     <header className="sticky top-0 z-40 border-b border-neutral-200 bg-white/80 backdrop-blur dark:border-neutral-800 dark:bg-neutral-900/80">
       <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
         <div className="flex items-center gap-3">
           <Logo />
         </div>
-        <div className="flex items-center gap-2">
-          {/* Theme toggle always visible */}
-          <button
-            onClick={onThemeCycle}
-            className="inline-flex items-center gap-2 rounded-full border border-neutral-300 px-3 py-1.5 text-sm hover:bg-neutral-50 dark:border-neutral-600 dark:hover:bg-neutral-800"
-            title={`Theme: ${theme}`}
-          >
-            {theme === 'dark' ? <Moon className="h-4 w-4" /> : theme === 'light' ? <Sun className="h-4 w-4" /> : <Monitor className="h-4 w-4" />} {theme}
-          </button>
-          {/* Admin controls hidden from public */}
-          {isAdmin && (
-            <>
-              <button
-                onClick={() => copy(window.location.href)}
-                className="inline-flex items-center gap-2 rounded-full border border-neutral-300 px-3 py-1.5 text-sm hover:bg-neutral-50 dark:border-neutral-600 dark:hover:bg-neutral-800"
-                title="Copy page link"
-              >
-                <Share2 className="h-4 w-4" /> Share
-              </button>
-              <button
-                onClick={onImport}
-                className="inline-flex items-center gap-2 rounded-full border border-neutral-300 px-3 py-1.5 text-sm hover:bg-neutral-50 dark:border-neutral-600 dark:hover:bg-neutral-800"
-                title="Import JSON"
-              >
-                <Upload className="h-4 w-4" /> Import / 导入
-              </button>
-              <button
-                onClick={() => downloadJSON(STORAGE_KEY, data)}
-                className="inline-flex items-center gap-2 rounded-full border border-neutral-300 px-3 py-1.5 text-sm hover:bg-neutral-50 dark:border-neutral-600 dark:hover:bg-neutral-800"
-                title="Export JSON"
-              >
-                <Download className="h-4 w-4" /> Export
-              </button>
-            </>
-          )}
-        </div>
+        {/* Admin controls hidden from public */}
+        {isAdmin && (
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => copy(window.location.href)}
+              className="inline-flex items-center gap-2 rounded-full border border-neutral-300 px-3 py-1.5 text-sm hover:bg-neutral-50 dark:border-neutral-600 dark:hover:bg-neutral-800"
+              title="Copy page link"
+            >
+              <Share2 className="h-4 w-4" /> Share
+            </button>
+            <button
+              onClick={onImport}
+              className="inline-flex items-center gap-2 rounded-full border border-neutral-300 px-3 py-1.5 text-sm hover:bg-neutral-50 dark:border-neutral-600 dark:hover:bg-neutral-800"
+              title="Import JSON"
+            >
+              <Upload className="h-4 w-4" /> Import / 导入
+            </button>
+            <button
+              onClick={() => downloadJSON(STORAGE_KEY, data)}
+              className="inline-flex items-center gap-2 rounded-full border border-neutral-300 px-3 py-1.5 text-sm hover:bg-neutral-50 dark:border-neutral-600 dark:hover:bg-neutral-800"
+              title="Export JSON"
+            >
+              <Download className="h-4 w-4" /> Export
+            </button>
+          </div>
+        )}
       </div>
     </header>
   );
@@ -238,6 +231,33 @@ function Logo() {
       <div className="rounded-sm bg-black px-2 py-1 text-xs font-semibold tracking-widest text-white">MON</div>
       <div className="text-xl font-serif tracking-tight group-hover:opacity-80">Monday Weekly</div>
     </a>
+  );
+}
+
+// --- Floating Theme Switch --------------------------------------------------
+function ThemeSwitch({ theme, onChange }) {
+  const item = (key, Icon) => (
+    <button
+      key={key}
+      aria-pressed={theme === key}
+      onClick={() => onChange(key)}
+      className={classNames(
+        "h-8 w-8 rounded-full grid place-items-center text-neutral-300 hover:text-white",
+        theme === key ? "bg-white/15 ring-2 ring-white/60 text-white" : ""
+      )}
+      title={key}
+    >
+      <Icon className="h-4 w-4" />
+    </button>
+  );
+  return (
+    <div className="fixed bottom-6 right-6 z-50 rounded-full border border-white/10 bg-black/60 p-1 backdrop-blur shadow-lg dark:border-white/15">
+      <div className="flex items-center gap-1">
+        {item('system', Monitor)}
+        {item('light', Sun)}
+        {item('dark', Moon)}
+      </div>
+    </div>
   );
 }
 
@@ -482,8 +502,8 @@ function Importer({ close, onImport }) {
       onImport(payload);
       close();
     } catch (e) {
-      const hasBackslash = /\\[^"\\/bfnrtu]/.test(text);
-      const hint = hasBackslash ? " Hint: check backslashes (use \\\\ or valid \\uXXXX escapes)." : "";
+      const hasBackslash = /\[^"\/bfnrtu]/.test(text);
+      const hint = hasBackslash ? " Hint: check backslashes (use \ or valid \uXXXX escapes)." : "";
       setError(e.message + hint);
     }
   };
