@@ -12,60 +12,13 @@ import { Calendar, Clock, Link as LinkIcon, Share2, Upload, Download, Search, Ch
  * - Permalinks: #/issue/{issueId} where issueId = YYYY-MM-DD_YYYY-MM-DD (SGT week window)
  * - Copy-link share and subtle hover interactions in Medium style
  *
- * HOW TO USE
- * 1) Deploy: This file works in any React/Vite/Next app. Make it your page component (e.g., src/App.jsx or pages/index.tsx).
- * 2) Load content: Click "Import / 导入" in the header and paste a JSON payload using the schema below.
- * 3) Share: Click a card → you get a permalink (hash). Use the Share button to copy.
- * 4) Archive: New weeks simply import another issue object; the archive updates automatically.
- * 5) Export: Click Export to download the full JSON for versioning in Git.
- *
- * JSON SCHEMA (example)
- * {
- *   "issues": [
- *     {
- *       "id": "2025-08-18_2025-08-24",
- *       "start": "2025-08-18",  // SGT week start (YYYY-MM-DD)
- *       "end": "2025-08-24",    // SGT week end
- *       "publishedAt": "2025-08-25T10:00:00+08:00", // intended publish time (SGT)
- *       "title": "2025-08-18 至 2025-08-24 周报 / Weekly",
- *       "summaryCN": "本周经核的科技/IT大事件精选。",
- *       "summaryEN": "Curated, verified tech/IT developments of the week.",
- *       "items": [
- *         {
- *           "title": "标题（≤16字/≤12英词，事实描述）",
- *           "factsCN": ["中文事实1–2句"],
- *           "factsEN": ["English facts 1–2 sentences"],
- *           "keyInfo": {
- *             "timeSGT": "2025-08-20",
- *             "actor": "Apple",
- *             "market": "Global",
- *             "impact": "iOS/iPadOS/macOS；CVE-2025-43300"
- *           },
- *           "image": {
- *             "src": "https://example.com/image.jpg", // official or reputable media only
- *             "alt": "Apple security update page",
- *             "caption": "Apple 紧急安全更新 / Apple security update",
- *             "credit": "Apple / Reuters",
- *             "href": "https://apple.com/security-updates"
- *           },
- *           "links": [
- *             {"label": "官方 / Official", "url": "https://support.apple.com/..."},
- *             {"label": "权威媒体 / Media", "url": "https://www.reuters.com/..."}
- *           ],
- *           "whyCN": "影响主流平台且在野利用，需尽快更新。",
- *           "whyEN": "Cross-platform zero-day with confirmed exploitation requires rapid patching.",
- *           "updates": [
- *             {"cn": "有何变化：补充CISA KEV。", "en": "What changed: Added CISA KEV entry."}
- *           ]
- *         }
- *       ]
- *     }
- *   ]
- * }
+ * Admin controls (Share/Import/Export) are now **hidden by default** and only visible
+ * when an admin key matches via query string `?key=YOUR_SECRET` or a debug flag.
+ * Set Vercel env var: `VITE_ADMIN_KEY=yourSecret`.
  */
 
 // --- Utilities --------------------------------------------------------------
-const TZ_LABEL = "SGT"; // Displayed only in time labels (kept for accuracy in key info rows)
+const TZ_LABEL = "SGT"; // kept for time labels in key info rows
 const STORAGE_KEY = "monday.weekly.data.v1";
 
 /** Format YYYY-MM-DD → Mon DD, YYYY */
@@ -89,6 +42,27 @@ function fmtDateTime(iso) {
 
 function classNames(...xs) { return xs.filter(Boolean).join(" "); }
 
+// Admin gate: show controls only if key matches (?key=...) or debug
+function useAdmin() {
+  const [isAdmin, setIsAdmin] = useState(() => {
+    try { return localStorage.getItem("mw.admin") === "1"; } catch { return false; }
+  });
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const urlKey = params.get("key") || "";
+      const enableFlag = params.get("admin") === "1"; // fallback for local testing
+      const envKey = (import.meta?.env?.VITE_ADMIN_KEY || "").trim();
+      const ok = (envKey ? urlKey === envKey : enableFlag);
+      if (ok) {
+        setIsAdmin(true);
+        try { localStorage.setItem("mw.admin", "1"); } catch {}
+      }
+    } catch {}
+  }, []);
+  return isAdmin;
+}
+
 // --- Bootstrap payload ------------------------------------------------------
 const bootstrapData = {
   issues: [
@@ -99,7 +73,8 @@ const bootstrapData = {
       publishedAt: "2025-08-25T10:00:00+08:00",
       title: "2025-08-18 至 2025-08-24 周报 / Weekly",
       summaryCN: "本周经严核的科技/IT大事件精选。",
-      summaryEN: "Verified, cross-sourced tech/IT developments for the week.",
+      summaryEN: "Verified, cross-sourced tech/IT developments for the week.
+",
       items: []
     }
   ]
@@ -111,6 +86,7 @@ export default function MondayWeekly() {
   const [q, setQ] = useState("");
   const { route, params, go } = useHashRouter();
   const [showImporter, setShowImporter] = useState(false);
+  const isAdmin = useAdmin();
 
   // Load remote content from /content/index.json if present, then merge with local
   useEffect(() => {
@@ -147,7 +123,7 @@ export default function MondayWeekly() {
 
   return (
     <div className="min-h-screen bg-white text-neutral-900">
-      <Header onImport={() => setShowImporter(true)} data={data} setData={setData} />
+      <Header onImport={() => setShowImporter(true)} data={data} setData={setData} isAdmin={isAdmin} />
 
       <main className="mx-auto w-full max-w-5xl px-4 sm:px-6 lg:px-8">
         {route === "issue" && currentIssue ? (
@@ -162,11 +138,10 @@ export default function MondayWeekly() {
         )}
       </main>
 
-      {showImporter && (
+      {showImporter && isAdmin && (
         <Importer
           close={() => setShowImporter(false)}
           onImport={(payload) => {
-            // Merge strategy: if id exists, replace; else push
             if (!payload?.issues) return;
             setData(prev => {
               const existing = new Map((prev?.issues||[]).map(i => [i.id, i]));
@@ -184,37 +159,40 @@ export default function MondayWeekly() {
 }
 
 // --- Header -----------------------------------------------------------------
-function Header({ onImport, data, setData }) {
+function Header({ onImport, data, setData, isAdmin }) {
   return (
     <header className="sticky top-0 z-40 border-b border-neutral-200 bg-white/80 backdrop-blur">
       <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
         <div className="flex items-center gap-3">
           <Logo />
-          {/* 删除原先的副标题（SGT • Medium-style weekly archive） */}
+          {/* Removed the old subtitle entirely */}
         </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => copy(window.location.href)}
-            className="inline-flex items-center gap-2 rounded-full border border-neutral-300 px-3 py-1.5 text-sm hover:bg-neutral-50"
-            title="Copy page link"
-          >
-            <Share2 className="h-4 w-4" /> Share
-          </button>
-          <button
-            onClick={onImport}
-            className="inline-flex items-center gap-2 rounded-full border border-neutral-300 px-3 py-1.5 text-sm hover:bg-neutral-50"
-            title="Import JSON"
-          >
-            <Upload className="h-4 w-4" /> Import / 导入
-          </button>
-          <button
-            onClick={() => downloadJSON(STORAGE_KEY, data)}
-            className="inline-flex items-center gap-2 rounded-full border border-neutral-300 px-3 py-1.5 text-sm hover:bg-neutral-50"
-            title="Export JSON"
-          >
-            <Download className="h-4 w-4" /> Export
-          </button>
-        </div>
+        {/* Hide all admin controls from public */}
+        {isAdmin && (
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => copy(window.location.href)}
+              className="inline-flex items-center gap-2 rounded-full border border-neutral-300 px-3 py-1.5 text-sm hover:bg-neutral-50"
+              title="Copy page link"
+            >
+              <Share2 className="h-4 w-4" /> Share
+            </button>
+            <button
+              onClick={onImport}
+              className="inline-flex items-center gap-2 rounded-full border border-neutral-300 px-3 py-1.5 text-sm hover:bg-neutral-50"
+              title="Import JSON"
+            >
+              <Upload className="h-4 w-4" /> Import / 导入
+            </button>
+            <button
+              onClick={() => downloadJSON(STORAGE_KEY, data)}
+              className="inline-flex items-center gap-2 rounded-full border border-neutral-300 px-3 py-1.5 text-sm hover:bg-neutral-50"
+              title="Export JSON"
+            >
+              <Download className="h-4 w-4" /> Export
+            </button>
+          </div>
+        )}
       </div>
     </header>
   );
@@ -281,7 +259,7 @@ function IssueCard({ issue, onClick }) {
           {issue.publishedAt && (
             <span className="inline-flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> {fmtDateTime(issue.publishedAt)}</span>
           )}
-          {/* 右侧标识由 SGT 改成 Eric Sun，图标改为 User */}
+          {/* Right badge: User + Eric Sun */}
           <span className="ml-auto inline-flex items-center gap-1"><User className="h-3.5 w-3.5" /> Eric Sun</span>
         </div>
         {(issue.summaryCN || issue.summaryEN) && (
@@ -296,6 +274,7 @@ function IssueCard({ issue, onClick }) {
 // --- Issue Page -------------------------------------------------------------
 function IssuePage({ issue, onBack }) {
   const share = () => copy(window.location.href);
+  const isAdmin = useAdmin();
   return (
     <article className="py-8 sm:py-10">
       <button onClick={onBack} className="mb-6 inline-flex items-center gap-1.5 text-sm text-neutral-600 hover:text-neutral-900">
@@ -307,11 +286,13 @@ function IssuePage({ issue, onBack }) {
         <div className="mb-6 flex flex-wrap items-center gap-3 text-sm text-neutral-500">
           <span className="inline-flex items-center gap-1"><Calendar className="h-4 w-4" /> {fmtDate(issue.start)} — {fmtDate(issue.end)}</span>
           {issue.publishedAt && <span className="inline-flex items-center gap-1"><Clock className="h-4 w-4" /> {fmtDateTime(issue.publishedAt)}</span>}
-          {/* 这里把 Globe + SGT 改为 User + Eric Sun */}
+          {/* Replace Globe+SGT with User+Eric Sun */}
           <span className="inline-flex items-center gap-1"><User className="h-4 w-4" /> Eric Sun</span>
-          <button onClick={share} className="ml-auto inline-flex items-center gap-1 rounded-full border border-neutral-300 px-3 py-1 text-xs hover:bg-neutral-50">
-            <Share2 className="h-3.5 w-3.5" /> Share
-          </button>
+          {isAdmin && (
+            <button onClick={share} className="ml-auto inline-flex items-center gap-1 rounded-full border border-neutral-300 px-3 py-1 text-xs hover:bg-neutral-50">
+              <Share2 className="h-3.5 w-3.5" /> Share
+            </button>
+          )}
         </div>
         {(issue.summaryCN || issue.summaryEN) && (
           <p className="mb-8 text-[17px] leading-7 text-neutral-700">{issue.summaryCN} <span className="text-neutral-400">/</span> {issue.summaryEN}</p>
@@ -455,7 +436,6 @@ function Importer({ close, onImport }) {
     setError("");
     try {
       const payload = JSON.parse(text);
-      // Quick validation
       if (!payload || !Array.isArray(payload.issues)) throw new Error("Missing issues array");
       for (const issue of payload.issues) {
         if (!issue.id) throw new Error("Each issue requires an id (YYYY-MM-DD_YYYY-MM-DD)");
@@ -463,7 +443,6 @@ function Importer({ close, onImport }) {
       onImport(payload);
       close();
     } catch (e) {
-      // Common hint for bad escapes
       const hasBackslash = /\\[^"\\/bfnrtu]/.test(text);
       const hint = hasBackslash ? " Hint: check backslashes (use \\ or valid \\uXXXX escapes)." : "";
       setError(e.message + hint);
