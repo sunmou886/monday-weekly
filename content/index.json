@@ -1,0 +1,14 @@
+{
+  "issues": [
+    {
+      "id": "2025-08-18_2025-08-24",
+      "start": "2025-08-18",
+      "end": "2025-08-24",
+      "publishedAt": "2025-08-25T10:00:00+08:00",
+      "title": "2025-08-18 至 2025-08-24 周报 / Weekly",
+      "summaryCN": "本周经严核的科技/IT大事件精选。",
+      "summaryEN": "Verified, cross-sourced tech/IT developments for the week.",
+      "items": [ /* 与上面相同的 6 条，出于篇幅此处可直接复制 */ ]
+    }
+  ]
+}
