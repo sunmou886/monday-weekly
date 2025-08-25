@@ -1,0 +1,186 @@
+{
+  "issues": [
+    {
+      "id": "2025-08-18_2025-08-24",
+      "start": "2025-08-18",
+      "end": "2025-08-24",
+      "publishedAt": "2025-08-25T10:00:00+08:00",
+      "title": "2025-08-18 至 2025-08-24 周报 / Weekly",
+      "summaryCN": "本周经严核的科技/IT大事件精选。",
+      "summaryEN": "Verified, cross-sourced tech/IT developments for the week.",
+      "items": [
+        {
+          "title": "苹果修补被利用零日 / Apple patches exploited zero-day",
+          "factsCN": [
+            "苹果发布 iOS/iPadOS 18.6.2、iPadOS 17.7.10 与 macOS 15.6.1/14.7.8/13.7.8，修复 ImageIO 越界写 CVE-2025-43300；苹果称可能在定向攻击中被利用。"
+          ],
+          "factsEN": [
+            "Apple shipped iOS/iPadOS 18.6.2, iPadOS 17.7.10, and macOS 15.6.1/14.7.8/13.7.8 to fix ImageIO OOB write CVE-2025-43300; Apple notes possible targeted exploitation."
+          ],
+          "keyInfo": {
+            "timeSGT": "2025-08-20",
+            "actor": "Apple",
+            "market": "Global",
+            "impact": "iOS/iPadOS/macOS; CVE-2025-43300"
+          },
+          "image": {
+            "src": "https://www.bleepstatic.com/content/hl-images/2025/08/20/Apple_logo.jpg",
+            "alt": "Apple security update",
+            "caption": "Apple 紧急修复 CVE-2025-43300",
+            "credit": "BleepingComputer",
+            "href": "https://support.apple.com/en-us/124925"
+          },
+          "links": [
+            { "label": "Apple 安全更新（官方）", "url": "https://support.apple.com/en-us/124925" },
+            { "label": "macOS 安全更新（官方）", "url": "https://support.apple.com/en-us/124928" },
+            { "label": "BleepingComputer 报道", "url": "https://www.bleepingcomputer.com/news/apple/apple-emergency-updates-fix-new-actively-exploited-zero-day/" }
+          ],
+          "whyCN": "跨平台通路被证实存在在野利用，尽快更新可降风险。",
+          "whyEN": "Confirmed in-the-wild exploitation across Apple platforms warrants rapid patching."
+        },
+        {
+          "title": "Cloudflare 与 AWS us-east-1 链路拥塞 / Cloudflare–AWS us-east-1 congestion",
+          "factsCN": [
+            "8 月 22 日 00:27–04:18（SGT），单租户流量暴增导致 Cloudflare 与 AWS us-east-1 互联拥塞，出现延迟/丢包；非攻击或 BGP 劫持。"
+          ],
+          "factsEN": [
+            "From 00:27 to 04:18 SGT on Aug 22, a surge from a single customer congested Cloudflare’s interconnects to AWS us-east-1, causing latency/loss; not an attack or BGP hijack."
+          ],
+          "keyInfo": {
+            "timeSGT": "2025-08-22 00:27–04:18",
+            "actor": "Cloudflare",
+            "market": "us-east-1 / global traffic via IAD",
+            "impact": "Regional performance impact (latency/loss/timeouts)"
+          },
+          "image": {
+            "src": "https://cf-assets.www.cloudflare.com/zkvhlag99gkb/7FksJdXAQKSbcnvp3LfCIJ/62eeb39aab26b0adc456f3f34100aa3a/BLOG-2938_1.png",
+            "alt": "Cloudflare incident",
+            "caption": "Cloudflare 复盘：2025-08-21 事件",
+            "credit": "Cloudflare",
+            "href": "https://blog.cloudflare.com/cloudflare-incident-on-august-21-2025/"
+          },
+          "links": [
+            { "label": "Cloudflare 事件复盘（官方）", "url": "https://blog.cloudflare.com/cloudflare-incident-on-august-21-2025/" },
+            { "label": "The Verge 报道", "url": "https://www.theverge.com/2025/8/22/24228709/cloudflare-aws-us-east-1-congestion-outage" }
+          ],
+          "whyCN": "跨云互联的容量瓶颈会放大单租户异常的系统性影响。",
+          "whyEN": "Interconnect bottlenecks can turn a single-tenant spike into systemic impact."
+        },
+        {
+          "title": "Chrome 139 发布并执行 CA 信任收缩 / Chrome 139 ships; CA distrust",
+          "factsCN": [
+            "Chrome 稳定版 139.0.7258.138/.139 推出，修复 V8 越界写 CVE-2025-9132；从 v139 起不再信任 Chunghwa Telecom 与 NetLock 新签发服务器证书。"
+          ],
+          "factsEN": [
+            "Chrome stable 139.0.7258.138/.139 fixes V8 OOB write CVE-2025-9132; from v139, new server certs by Chunghwa Telecom and NetLock are distrusted by default."
+          ],
+          "keyInfo": {
+            "timeSGT": "2025-08-20",
+            "actor": "Google Chrome",
+            "market": "Global",
+            "impact": "CVE-2025-9132; CA distrust enforcement from v139"
+          },
+          "image": {
+            "src": "https://www.google.com/chrome/static/images/chrome-logo.svg",
+            "alt": "Chrome logo",
+            "caption": "Chrome 139 安全更新与根存储政策",
+            "credit": "Google",
+            "href": "https://chromereleases.googleblog.com/2025/08/stable-channel-update-for-desktop_19.html"
+          },
+          "links": [
+            { "label": "Chrome Releases（官方）", "url": "https://chromereleases.googleblog.com/2025/08/stable-channel-update-for-desktop_19.html" },
+            { "label": "Google Security Blog（官方）", "url": "https://security.googleblog.com/2025/05/sustaining-digital-certificate-security-chrome-root-store-changes.html" },
+            { "label": "SecurityWeek 报道", "url": "https://www.securityweek.com/chrome-to-distrust-chunghwa-telecom-and-netlock-certificates/" }
+          ],
+          "whyCN": "修复高危脚本引擎缺陷并调整根信任，影响用户安全与网站证书运维。",
+          "whyEN": "A V8 fix plus root trust change impacts both safety and certificate operations."
+        },
+        {
+          "title": "CISA 将 Apex One 零日列入 KEV / CISA adds Apex One zero-day to KEV",
+          "factsCN": [
+            "CISA 将 Trend Micro Apex One 控制台命令注入 CVE-2025-54948 列入 KEV，要求按时修复；厂商已发布缓解与补丁。"
+          ],
+          "factsEN": [
+            "CISA added Trend Micro Apex One command-injection CVE-2025-54948 to KEV; vendor released mitigation and patches."
+          ],
+          "keyInfo": {
+            "timeSGT": "2025-08-19",
+            "actor": "CISA / Trend Micro",
+            "market": "Enterprise endpoint",
+            "impact": "CVE-2025-54948 (CVSS 9.4); Apex One on-prem"
+          },
+          "image": {
+            "src": "https://www.bleepstatic.com/content/hl-images/2022/04/01/Trend_Micro__headpic.jpg",
+            "alt": "Trend Micro",
+            "caption": "Apex One 零日被列入 KEV",
+            "credit": "BleepingComputer",
+            "href": "https://success.trendmicro.com/en-US/solution/KA-0020652"
+          },
+          "links": [
+            { "label": "CISA KEV（官方）", "url": "https://www.cisa.gov/news-events/alerts/2025/08/18/cisa-adds-one-known-exploited-vulnerability-catalog" },
+            { "label": "Trend Micro 通告（官方）", "url": "https://success.trendmicro.com/en-US/solution/KA-0020652" },
+            { "label": "NVD（参考）", "url": "https://nvd.nist.gov/vuln/detail/CVE-2025-54948" }
+          ],
+          "whyCN": "列入 KEV 代表确认在野利用，必须优先处置。",
+          "whyEN": "KEV listing means confirmed exploitation and mandates priority remediation."
+        },
+        {
+          "title": "NVIDIA 推出 Spectrum-XGS / NVIDIA unveils Spectrum-XGS",
+          "factsCN": [
+            "NVIDIA 在 Hot Chips 宣布 Spectrum-XGS，以 Ethernet “scale-across” 连接多数据中心，构建统一 AI 集群；CoreWeave 将率先部署。"
+          ],
+          "factsEN": [
+            "NVIDIA announced Spectrum-XGS Ethernet “scale-across” to link multiple data centers into a unified AI cluster; CoreWeave to adopt early."
+          ],
+          "keyInfo": {
+            "timeSGT": "2025-08-22",
+            "actor": "NVIDIA",
+            "market": "Data center networking",
+            "impact": "Spectrum-XGS as part of Spectrum-X platform"
+          },
+          "image": {
+            "src": "https://www.globenewswire.com/NewsRoom/AttachmentNg/4b20de4d-8e6b-4c75-b19f-c8b030d0cf3f",
+            "alt": "NVIDIA Spectrum-XGS",
+            "caption": "NVIDIA Spectrum-XGS",
+            "credit": "NVIDIA / GlobeNewswire",
+            "href": "https://www.globenewswire.com/en/news-release/2025/08/22/3137900/0/en/nvidia-introduces-spectrum-xgs-ethernet-to-connect-distributed-data-centers-into-giga-scale-ai-super-factories.html"
+          },
+          "links": [
+            { "label": "NVIDIA 新闻稿（官方）", "url": "https://www.globenewswire.com/en/news-release/2025/08/22/3137900/0/en/nvidia-introduces-spectrum-xgs-ethernet-to-connect-distributed-data-centers-into-giga-scale-ai-super-factories.html" },
+            { "label": "NVIDIA Spectrum-X 平台页（官方）", "url": "https://www.nvidia.com/en-us/networking/ethernet-switching/spectrum-x/" }
+          ],
+          "whyCN": "AI 规模跨园区，网络确定性与延迟治理成为竞争点。",
+          "whyEN": "Cross-DC AI scale makes deterministic, low-latency networking a key differentiator."
+        },
+        {
+          "title": "Zoom 修复 Windows 提权高危漏洞 / Zoom fixes Windows EoP",
+          "factsCN": [
+            "Zoom 修复 Windows 客户端不受信任搜索路径漏洞 CVE-2025-49457（CVSS 9.6），多数受影响版本低于 6.3.10；涵盖 VDI/Rooms/SDK 等。"
+          ],
+          "factsEN": [
+            "Zoom patched Windows untrusted search path CVE-2025-49457 (CVSS 9.6); most affected versions < 6.3.10; covers VDI/Rooms/SDK, etc."
+          ],
+          "keyInfo": {
+            "timeSGT": "2025-08-14",
+            "actor": "Zoom",
+            "market": "Windows client",
+            "impact": "CVE-2025-49457; most < 6.3.10"
+          },
+          "image": {
+            "src": "https://st1.zoom.us/fe-static/fe-zvc/ui/images/logo-zoom.svg",
+            "alt": "Zoom",
+            "caption": "Zoom 公布并修复 CVE-2025-49457",
+            "credit": "Zoom",
+            "href": "https://www.zoom.com/en/trust/security-bulletin/"
+          },
+          "links": [
+            { "label": "Zoom 安全公告（官方）", "url": "https://www.zoom.com/en/trust/security-bulletin/" },
+            { "label": "TechRadar 报道", "url": "https://www.techradar.com/pro/security/zoom-patches-worrying-security-windows-flaw-make-sure-youre-protected-update-now" }
+          ],
+          "whyCN": "广泛部署客户端的提权可被用于横向移动与持久化。",
+          "whyEN": "Unauthenticated EoP in a widely deployed client aids lateral movement and persistence."
+        }
+      ]
+    }
+  ]
+}
