@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Calendar, Clock, Link as LinkIcon, Share2, Upload, Download, Search, ChevronLeft, ExternalLink, Globe, Info, User } from "lucide-react";
+import { Calendar, Clock, Link as LinkIcon, Share2, Upload, Download, Search, ChevronLeft, ExternalLink, Globe, Info, Sun, Moon, Monitor } from "lucide-react";
 
 /**
  * Monday Weekly — Medium-style archive & post page (single-file React app)
@@ -7,19 +7,18 @@ import { Calendar, Clock, Link as LinkIcon, Share2, Upload, Download, Search, Ch
  * - Medium-like typography and spacing (Tailwind CSS)
  * - Archive of weekly issues + single-issue reader (hash routing)
  * - Bilingual (CN first, EN second) presentation per item
+ * - English lines: 2px smaller than Chinese, serif, italic, lighter color
  * - Each item supports: title, facts (CN/EN), key info row, image (src/caption/credit/url), links (official + media), and Why it matters (CN/EN)
  * - Import/Export JSON (for weekly content ops); localStorage persistence
  * - Permalinks: #/issue/{issueId} where issueId = YYYY-MM-DD_YYYY-MM-DD (SGT week window)
  * - Copy-link share and subtle hover interactions in Medium style
- *
- * Admin controls (Share/Import/Export) are now **hidden by default** and only visible
- * when an admin key matches via query string `?key=YOUR_SECRET` or a debug flag.
- * Set Vercel env var: `VITE_ADMIN_KEY=yourSecret`.
+ * - Theme: system / light / dark with manual toggle, persists per device
+ * - Admin controls (Share/Import/Export) hidden unless key via ?key=... matches VITE_ADMIN_KEY
  */
 
 // --- Utilities --------------------------------------------------------------
-const TZ_LABEL = "SGT"; // kept for time labels in key info rows
 const STORAGE_KEY = "monday.weekly.data.v1";
+const THEME_KEY = "mw.theme"; // 'system' | 'light' | 'dark'
 
 /** Format YYYY-MM-DD → Mon DD, YYYY */
 function fmtDate(iso) {
@@ -35,12 +34,38 @@ function fmtDateTime(iso) {
   return d.toLocaleString("en-SG", {
     year: "numeric", month: "short", day: "2-digit",
     hour: "2-digit", minute: "2-digit", hour12: false,
-    timeZone: "Asia/Singapore",
-    timeZoneName: "short"
+    timeZone: "Asia/Singapore"
   });
 }
 
 function classNames(...xs) { return xs.filter(Boolean).join(" "); }
+
+// Theme helpers --------------------------------------------------------------
+function applyTheme(theme) {
+  const root = document.documentElement;
+  const preferDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const isDark = theme === 'dark' || (theme === 'system' && preferDark);
+  root.classList.toggle('dark', !!isDark);
+}
+
+function useTheme() {
+  const [theme, setTheme] = useState(() => {
+    try { return localStorage.getItem(THEME_KEY) || 'system'; } catch { return 'system'; }
+  });
+  useEffect(() => {
+    applyTheme(theme);
+    try { localStorage.setItem(THEME_KEY, theme); } catch {}
+  }, [theme]);
+  useEffect(() => {
+    if (theme !== 'system') return;
+    const mql = window.matchMedia('(prefers-color-scheme: dark)');
+    const onChange = () => applyTheme('system');
+    mql.addEventListener('change', onChange);
+    return () => mql.removeEventListener('change', onChange);
+  }, [theme]);
+  const cycle = () => setTheme(t => t === 'system' ? 'light' : t === 'light' ? 'dark' : 'system');
+  return { theme, setTheme, cycle };
+}
 
 // Admin gate: show controls only if key matches (?key=...) or debug
 function useAdmin() {
@@ -51,7 +76,7 @@ function useAdmin() {
     try {
       const params = new URLSearchParams(window.location.search);
       const urlKey = params.get("key") || "";
-      const enableFlag = params.get("admin") === "1"; // fallback for local testing
+      const enableFlag = params.get("admin") === "1"; // fallback for local testing (disabled when env key is set)
       const envKey = (import.meta?.env?.VITE_ADMIN_KEY || "").trim();
       const ok = (envKey ? urlKey === envKey : enableFlag);
       if (ok) {
@@ -86,6 +111,7 @@ export default function MondayWeekly() {
   const { route, params, go } = useHashRouter();
   const [showImporter, setShowImporter] = useState(false);
   const isAdmin = useAdmin();
+  const { theme, cycle } = useTheme();
 
   // Load remote content from /content/index.json if present, then merge with local
   useEffect(() => {
@@ -121,8 +147,8 @@ export default function MondayWeekly() {
   }, [q, issuesSorted]);
 
   return (
-    <div className="min-h-screen bg-white text-neutral-900">
-      <Header onImport={() => setShowImporter(true)} data={data} setData={setData} isAdmin={isAdmin} />
+    <div className="min-h-screen bg-white text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100">
+      <Header onImport={() => setShowImporter(true)} data={data} setData={setData} isAdmin={isAdmin} theme={theme} onThemeCycle={cycle} />
 
       <main className="mx-auto w-full max-w-5xl px-4 sm:px-6 lg:px-8">
         {route === "issue" && currentIssue ? (
@@ -158,40 +184,49 @@ export default function MondayWeekly() {
 }
 
 // --- Header -----------------------------------------------------------------
-function Header({ onImport, data, setData, isAdmin }) {
+function Header({ onImport, data, setData, isAdmin, theme, onThemeCycle }) {
   return (
-    <header className="sticky top-0 z-40 border-b border-neutral-200 bg-white/80 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-neutral-200 bg-white/80 backdrop-blur dark:border-neutral-800 dark:bg-neutral-900/80">
       <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
         <div className="flex items-center gap-3">
           <Logo />
-          {/* Removed the old subtitle entirely */}
         </div>
-        {/* Hide all admin controls from public */}
-        {isAdmin && (
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => copy(window.location.href)}
-              className="inline-flex items-center gap-2 rounded-full border border-neutral-300 px-3 py-1.5 text-sm hover:bg-neutral-50"
-              title="Copy page link"
-            >
-              <Share2 className="h-4 w-4" /> Share
-            </button>
-            <button
-              onClick={onImport}
-              className="inline-flex items-center gap-2 rounded-full border border-neutral-300 px-3 py-1.5 text-sm hover:bg-neutral-50"
-              title="Import JSON"
-            >
-              <Upload className="h-4 w-4" /> Import / 导入
-            </button>
-            <button
-              onClick={() => downloadJSON(STORAGE_KEY, data)}
-              className="inline-flex items-center gap-2 rounded-full border border-neutral-300 px-3 py-1.5 text-sm hover:bg-neutral-50"
-              title="Export JSON"
-            >
-              <Download className="h-4 w-4" /> Export
-            </button>
-          </div>
-        )}
+        <div className="flex items-center gap-2">
+          {/* Theme toggle always visible */}
+          <button
+            onClick={onThemeCycle}
+            className="inline-flex items-center gap-2 rounded-full border border-neutral-300 px-3 py-1.5 text-sm hover:bg-neutral-50 dark:border-neutral-600 dark:hover:bg-neutral-800"
+            title={`Theme: ${theme}`}
+          >
+            {theme === 'dark' ? <Moon className="h-4 w-4" /> : theme === 'light' ? <Sun className="h-4 w-4" /> : <Monitor className="h-4 w-4" />} {theme}
+          </button>
+          {/* Admin controls hidden from public */}
+          {isAdmin && (
+            <>
+              <button
+                onClick={() => copy(window.location.href)}
+                className="inline-flex items-center gap-2 rounded-full border border-neutral-300 px-3 py-1.5 text-sm hover:bg-neutral-50 dark:border-neutral-600 dark:hover:bg-neutral-800"
+                title="Copy page link"
+              >
+                <Share2 className="h-4 w-4" /> Share
+              </button>
+              <button
+                onClick={onImport}
+                className="inline-flex items-center gap-2 rounded-full border border-neutral-300 px-3 py-1.5 text-sm hover:bg-neutral-50 dark:border-neutral-600 dark:hover:bg-neutral-800"
+                title="Import JSON"
+              >
+                <Upload className="h-4 w-4" /> Import / 导入
+              </button>
+              <button
+                onClick={() => downloadJSON(STORAGE_KEY, data)}
+                className="inline-flex items-center gap-2 rounded-full border border-neutral-300 px-3 py-1.5 text-sm hover:bg-neutral-50 dark:border-neutral-600 dark:hover:bg-neutral-800"
+                title="Export JSON"
+              >
+                <Download className="h-4 w-4" /> Export
+              </button>
+            </>
+          )}
+        </div>
       </div>
     </header>
   );
@@ -218,7 +253,7 @@ function ArchivePage({ issues, q, setQ, openIssue }) {
             value={q}
             onChange={e => setQ(e.target.value)}
             placeholder="Search title or facts…"
-            className="w-64 rounded-full border border-neutral-300 bg-white py-2 pl-8 pr-3 text-sm outline-none ring-0 placeholder:text-neutral-400 focus:border-neutral-400"
+            className="w-64 rounded-full border border-neutral-300 bg-white py-2 pl-8 pr-3 text-sm outline-none ring-0 placeholder:text-neutral-400 focus:border-neutral-400 dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-100 dark:placeholder:text-neutral-500"
           />
         </div>
       </div>
@@ -228,7 +263,7 @@ function ArchivePage({ issues, q, setQ, openIssue }) {
           <IssueCard key={issue.id} issue={issue} onClick={() => openIssue(issue.id)} />
         ))}
         {issues.length === 0 && (
-          <div className="rounded-2xl border border-dashed border-neutral-300 p-10 text-center text-neutral-500">
+          <div className="rounded-2xl border border-dashed border-neutral-300 p-10 text-center text-neutral-500 dark:border-neutral-700 dark:text-neutral-400">
             No issues match your search.
           </div>
         )}
@@ -242,9 +277,9 @@ function IssueCard({ issue, onClick }) {
   return (
     <article
       onClick={onClick}
-      className="group cursor-pointer overflow-hidden rounded-2xl border border-neutral-200 bg-white transition hover:shadow-md"
+      className="group cursor-pointer overflow-hidden rounded-2xl border border-neutral-200 bg-white transition hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900"
     >
-      <div className="aspect-[16/9] w-full bg-neutral-100">
+      <div className="aspect-[16/9] w-full bg-neutral-100 dark:bg-neutral-800">
         {firstImage ? (
           <img src={firstImage} alt="cover" className="h-full w-full object-cover transition group-hover:scale-[1.01]" />
         ) : (
@@ -253,18 +288,24 @@ function IssueCard({ issue, onClick }) {
       </div>
       <div className="space-y-2 p-5">
         <h3 className="line-clamp-2 font-serif text-lg leading-snug sm:text-xl">{issue.title || `${fmtDate(issue.start)} — ${fmtDate(issue.end)}`}</h3>
-        <div className="flex items-center gap-3 text-xs text-neutral-500">
+        <div className="flex items-center gap-3 text-xs text-neutral-500 dark:text-neutral-400">
           <span className="inline-flex items-center gap-1"><Calendar className="h-3.5 w-3.5" /> {fmtDate(issue.start)} — {fmtDate(issue.end)}</span>
           {issue.publishedAt && (
             <span className="inline-flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> {fmtDateTime(issue.publishedAt)}</span>
           )}
-          {/* Right badge: User + Eric Sun */}
-          <span className="ml-auto inline-flex items-center gap-1"><User className="h-3.5 w-3.5" /> Eric Sun</span>
         </div>
         {(issue.summaryCN || issue.summaryEN) && (
-          <p className="line-clamp-2 text-[15px] text-neutral-700">{issue.summaryCN || issue.summaryEN}</p>
+          <p className="line-clamp-2 text-[15px] text-neutral-700 dark:text-neutral-300">
+            <span>{issue.summaryCN || ""}</span>
+            {issue.summaryEN && (
+              <>
+                <span className="mx-2 text-neutral-400">/</span>
+                <span className="italic font-serif text-[13px] text-neutral-600 dark:text-neutral-400">{issue.summaryEN}</span>
+              </>
+            )}
+          </p>
         )}
-        <div className="pt-2 text-sm text-neutral-500">{issue.items?.length || 0} items</div>
+        <div className="pt-2 text-sm text-neutral-500 dark:text-neutral-400">{issue.items?.length || 0} items</div>
       </div>
     </article>
   );
@@ -272,29 +313,28 @@ function IssueCard({ issue, onClick }) {
 
 // --- Issue Page -------------------------------------------------------------
 function IssuePage({ issue, onBack }) {
-  const share = () => copy(window.location.href);
-  const isAdmin = useAdmin();
   return (
     <article className="py-8 sm:py-10">
-      <button onClick={onBack} className="mb-6 inline-flex items-center gap-1.5 text-sm text-neutral-600 hover:text-neutral-900">
+      <button onClick={onBack} className="mb-6 inline-flex items-center gap-1.5 text-sm text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-100">
         <ChevronLeft className="h-4 w-4" /> Back / 返回
       </button>
 
       <header className="mx-auto max-w-3xl">
         <h1 className="mb-3 font-serif text-3xl leading-tight sm:text-4xl">{issue.title || `${fmtDate(issue.start)} — ${fmtDate(issue.end)} Weekly`}</h1>
-        <div className="mb-6 flex flex-wrap items-center gap-3 text-sm text-neutral-500">
+        <div className="mb-6 flex flex-wrap items-center gap-3 text-sm text-neutral-500 dark:text-neutral-400">
           <span className="inline-flex items-center gap-1"><Calendar className="h-4 w-4" /> {fmtDate(issue.start)} — {fmtDate(issue.end)}</span>
           {issue.publishedAt && <span className="inline-flex items-center gap-1"><Clock className="h-4 w-4" /> {fmtDateTime(issue.publishedAt)}</span>}
-          {/* Replace Globe+SGT with User+Eric Sun */}
-          <span className="inline-flex items-center gap-1"><User className="h-4 w-4" /> Eric Sun</span>
-          {isAdmin && (
-            <button onClick={share} className="ml-auto inline-flex items-center gap-1 rounded-full border border-neutral-300 px-3 py-1 text-xs hover:bg-neutral-50">
-              <Share2 className="h-3.5 w-3.5" /> Share
-            </button>
-          )}
         </div>
         {(issue.summaryCN || issue.summaryEN) && (
-          <p className="mb-8 text-[17px] leading-7 text-neutral-700">{issue.summaryCN} <span className="text-neutral-400">/</span> {issue.summaryEN}</p>
+          <p className="mb-8 text-[17px] leading-7 text-neutral-800 dark:text-neutral-200">
+            <span>{issue.summaryCN || ""}</span>
+            {issue.summaryEN && (
+              <>
+                <span className="mx-2 text-neutral-400">/</span>
+                <span className="italic font-serif text-[15px] text-neutral-600 dark:text-neutral-400">{issue.summaryEN}</span>
+              </>
+            )}
+          </p>
         )}
       </header>
 
@@ -302,7 +342,7 @@ function IssuePage({ issue, onBack }) {
         {issue.items?.length ? issue.items.map((item, idx) => (
           <ItemBlock key={idx} item={item} idx={idx+1} />
         )) : (
-          <div className="rounded-2xl border border-dashed border-neutral-300 p-8 text-center text-neutral-500">
+          <div className="rounded-2xl border border-dashed border-neutral-300 p-8 text-center text-neutral-500 dark:border-neutral-700 dark:text-neutral-400">
             No items yet. Use "Import / 导入" to add content for this week.
           </div>
         )}
@@ -322,10 +362,10 @@ function ItemBlock({ item, idx }) {
       {/* Facts */}
       <div className="space-y-2">
         {Array.isArray(item.factsCN) && item.factsCN.map((s, i) => (
-          <p key={`cn-${i}`} className="text-[16.5px] leading-7 text-neutral-900">{s}</p>
+          <p key={`cn-${i}`} className="text-[16px] leading-7 text-neutral-900 dark:text-neutral-100">{s}</p>
         ))}
         {Array.isArray(item.factsEN) && item.factsEN.map((s, i) => (
-          <p key={`en-${i}`} className="text-[16px] leading-7 text-neutral-700">{s}</p>
+          <p key={`en-${i}`} className="text-[14px] leading-7 italic font-serif text-neutral-700 dark:text-neutral-300">{s}</p>
         ))}
       </div>
 
@@ -336,15 +376,15 @@ function ItemBlock({ item, idx }) {
 
       {/* Image */}
       {item.image?.src && (
-        <figure className="overflow-hidden rounded-2xl border border-neutral-200">
+        <figure className="overflow-hidden rounded-2xl border border-neutral-200 dark:border-neutral-800">
           <a href={item.image.href || item.image.src} target="_blank" rel="noreferrer">
             <img src={item.image.src} alt={item.image.alt || "image"} className="w-full object-cover" />
           </a>
           {(item.image.caption || item.image.credit) && (
-            <figcaption className="flex items-center justify-between gap-3 bg-neutral-50 px-4 py-2 text-xs text-neutral-600">
+            <figcaption className="flex items-center justify-between gap-3 bg-neutral-50 px-4 py-2 text-xs text-neutral-600 dark:bg-neutral-900 dark:text-neutral-400">
               <span className="truncate">{item.image.caption}</span>
               <a
-                className="shrink-0 items-center gap-1 text-neutral-500 hover:text-neutral-800"
+                className="shrink-0 items-center gap-1 text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200"
                 href={item.image.href || item.image.src}
                 target="_blank" rel="noreferrer"
               >
@@ -359,7 +399,7 @@ function ItemBlock({ item, idx }) {
       {Array.isArray(item.links) && item.links.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {item.links.map((l, i) => (
-            <a key={i} href={l.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 rounded-full border border-neutral-300 px-3 py-1 text-xs hover:bg-neutral-50">
+            <a key={i} href={l.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 rounded-full border border-neutral-300 px-3 py-1 text-xs hover:bg-neutral-50 dark:border-neutral-600 dark:hover:bg-neutral-800">
               <LinkIcon className="h-3.5 w-3.5" /> {l.label || "Link"}
             </a>
           ))}
@@ -368,37 +408,37 @@ function ItemBlock({ item, idx }) {
 
       {/* Why it matters */}
       {(item.whyCN || item.whyEN) && (
-        <div className="rounded-xl bg-neutral-50 p-4 text-[15px] text-neutral-800">
+        <div className="rounded-xl bg-neutral-50 p-4 text-[15px] text-neutral-800 dark:bg-neutral-900 dark:text-neutral-200">
           <div className="font-medium">这为什么重要 / Why it matters</div>
-          <p className="mt-1">{item.whyCN}</p>
-          <p className="text-neutral-600">{item.whyEN}</p>
+          {item.whyCN && <p className="mt-1 text-[15px]">{item.whyCN}</p>}
+          {item.whyEN && <p className="italic font-serif text-[13px] text-neutral-600 dark:text-neutral-400">{item.whyEN}</p>}
         </div>
       )}
 
       {/* Updates */}
       {Array.isArray(item.updates) && item.updates.length > 0 && (
-        <div className="rounded-xl border border-neutral-200 p-4 text-[14.5px]">
+        <div className="rounded-xl border border-neutral-200 p-4 text-[14.5px] dark:border-neutral-800">
           <div className="mb-1 font-medium">有何变化 / What changed</div>
-          <ul className="list-disc space-y-1 pl-5 text-neutral-700">
+          <ul className="list-disc space-y-1 pl-5 text-neutral-700 dark:text-neutral-300">
             {item.updates.map((u, i) => (
               <li key={i}>
-                <span className="text-neutral-900">{u.cn}</span>
-                {u.en && <span className="text-neutral-600"> / {u.en}</span>}
+                <span className="text-neutral-900 dark:text-neutral-100">{u.cn}</span>
+                {u.en && <span className="text-neutral-600 dark:text-neutral-400"> / {u.en}</span>}
               </li>
             ))}
           </ul>
         </div>
       )}
 
-      <hr className="mt-6 border-neutral-200" />
+      <hr className="mt-6 border-neutral-200 dark:border-neutral-800" />
     </section>
   );
 }
 
 function KeyInfoRow({ info }) {
   return (
-    <div className="flex flex-wrap items-center gap-2 rounded-xl bg-neutral-50 px-3 py-2 text-xs text-neutral-700">
-      {info.timeSGT && <Badge icon={<Clock className="h-3.5 w-3.5" />} label={`时间(${TZ_LABEL})：${info.timeSGT}`} />}
+    <div className="flex flex-wrap items-center gap-2 rounded-xl bg-neutral-50 px-3 py-2 text-xs text-neutral-700 dark:bg-neutral-900 dark:text-neutral-300">
+      {info.timeSGT && <Badge icon={<Clock className="h-3.5 w-3.5" />} label={`时间：${info.timeSGT}`} />}
       {info.actor && <Badge icon={<Info className="h-3.5 w-3.5" />} label={`主体：${info.actor}`} />}
       {info.market && <Badge icon={<Globe className="h-3.5 w-3.5" />} label={`地区/市场：${info.market}`} />}
       {info.impact && <Badge icon={<Info className="h-3.5 w-3.5" />} label={`影响：${info.impact}`} />}
@@ -408,7 +448,7 @@ function KeyInfoRow({ info }) {
 
 function Badge({ icon, label }) {
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 bg-white px-2.5 py-1">
+    <span className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 bg-white px-2.5 py-1 dark:border-neutral-700 dark:bg-neutral-900">
       {icon}
       <span>{label}</span>
     </span>
@@ -442,29 +482,29 @@ function Importer({ close, onImport }) {
       onImport(payload);
       close();
     } catch (e) {
-      const hasBackslash = /\\[^"\\/bfnrtu]/.test(text);
-      const hint = hasBackslash ? " Hint: check backslashes (use \\ or valid \\uXXXX escapes)." : "";
+      const hasBackslash = /\[^"\/bfnrtu]/.test(text);
+      const hint = hasBackslash ? " Hint: check backslashes (use \ or valid \uXXXX escapes)." : "";
       setError(e.message + hint);
     }
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div ref={dialogRef} className="w-full max-w-3xl rounded-2xl bg-white p-6 shadow-xl">
+      <div ref={dialogRef} className="w-full max-w-3xl rounded-2xl bg-white p-6 shadow-xl dark:bg-neutral-900">
         <div className="mb-4 flex items-center justify-between">
           <h3 className="text-lg font-semibold">Import JSON / 导入周报数据</h3>
-          <button onClick={close} className="rounded-full border border-neutral-300 px-2 py-1 text-xs hover:bg-neutral-50">Close</button>
+          <button onClick={close} className="rounded-full border border-neutral-300 px-2 py-1 text-xs hover:bg-neutral-50 dark:border-neutral-600 dark:hover:bg-neutral-800">Close</button>
         </div>
-        <p className="mb-3 text-sm text-neutral-600">Paste a JSON payload following the schema in the source code comment. Existing issues with the same id will be replaced.</p>
+        <p className="mb-3 text-sm text-neutral-600 dark:text-neutral-400">Paste a JSON payload following the schema in the source code comment. Existing issues with the same id will be replaced.</p>
         <textarea
           value={text}
           onChange={e => setText(e.target.value)}
           placeholder={IMPORT_PLACEHOLDER}
-          className="h-64 w-full resize-y rounded-xl border border-neutral-300 bg-neutral-50 p-3 font-mono text-xs focus:border-neutral-400"
+          className="h-64 w-full resize-y rounded-xl border border-neutral-300 bg-neutral-50 p-3 font-mono text-xs focus:border-neutral-400 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100"
         />
-        {error && <div className="mt-2 text-sm text-red-600">{error}</div>}
+        {error && <div className="mt-2 text-sm text-red-600 dark:text-red-400">{error}</div>}
         <div className="mt-4 flex justify-end gap-2">
-          <button onClick={close} className="rounded-full border border-neutral-300 px-3 py-1.5 text-sm hover:bg-neutral-50">Cancel</button>
+          <button onClick={close} className="rounded-full border border-neutral-300 px-3 py-1.5 text-sm hover:bg-neutral-50 dark:border-neutral-600 dark:hover:bg-neutral-800">Cancel</button>
           <button onClick={handleImport} className="rounded-full bg-black px-3 py-1.5 text-sm text-white hover:bg-neutral-800">Import</button>
         </div>
       </div>
@@ -475,10 +515,10 @@ function Importer({ close, onImport }) {
 // --- Footer -----------------------------------------------------------------
 function Footer() {
   return (
-    <footer className="border-t border-neutral-200 py-8">
+    <footer className="border-t border-neutral-200 py-8 dark:border-neutral-800">
       <div className="mx-auto flex w-full max-w-5xl flex-col items-start justify-between gap-4 px-4 sm:flex-row sm:items-center sm:px-6 lg:px-8">
-        <div className="text-sm text-neutral-500">© {new Date().getFullYear()} Monday. Medium-inspired UI. SGT timezone.</div>
-        <div className="text-xs text-neutral-500">Content: bilingual; each sentence verified with official + reputable media sources. Images from official / reputable outlets only.</div>
+        <div className="text-sm text-neutral-500 dark:text-neutral-400">© {new Date().getFullYear()} Monday. Medium-inspired UI.</div>
+        <div className="text-xs text-neutral-500 dark:text-neutral-400">Content: bilingual; each sentence verified with official + reputable media sources. Images from official / reputable outlets only.</div>
       </div>
     </footer>
   );
@@ -564,7 +604,7 @@ function TestPanel() {
   const okCount = results.filter(r => r.ok).length;
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 w-72 rounded-2xl border border-neutral-300 bg-white p-3 shadow-lg">
+    <div className="fixed bottom-4 right-4 z-50 w-72 rounded-2xl border border-neutral-300 bg-white p-3 shadow-lg dark:border-neutral-700 dark:bg-neutral-900">
       <button onClick={() => setOpen(v => !v)} className="mb-2 w-full rounded-lg bg-black px-3 py-1.5 text-sm text-white">
         Tests ({okCount}/{results.length}) {open ? "▲" : "▼"}
       </button>
@@ -577,7 +617,7 @@ function TestPanel() {
           ))}
         </ul>
       )}
-      <div className="mt-2 text-[10px] text-neutral-500">Add <code>?debug=1</code> to the URL to see tests.</div>
+      <div className="mt-2 text-[10px] text-neutral-500 dark:text-neutral-400">Add <code>?debug=1</code> to the URL to see tests.</div>
     </div>
   );
 }
