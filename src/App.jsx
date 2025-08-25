@@ -482,8 +482,8 @@ function Importer({ close, onImport }) {
       onImport(payload);
       close();
     } catch (e) {
-      const hasBackslash = /\[^"\/bfnrtu]/.test(text);
-      const hint = hasBackslash ? " Hint: check backslashes (use \ or valid \uXXXX escapes)." : "";
+      const hasBackslash = /\\[^"\\/bfnrtu]/.test(text);
+      const hint = hasBackslash ? " Hint: check backslashes (use \\\\ or valid \\uXXXX escapes)." : "";
       setError(e.message + hint);
     }
   };
