@@ -73,8 +73,7 @@ const bootstrapData = {
       publishedAt: "2025-08-25T10:00:00+08:00",
       title: "2025-08-18 至 2025-08-24 周报 / Weekly",
       summaryCN: "本周经严核的科技/IT大事件精选。",
-      summaryEN: "Verified, cross-sourced tech/IT developments for the week.
-",
+      summaryEN: "Verified, cross-sourced tech/IT developments for the week.",
       items: []
     }
   ]
