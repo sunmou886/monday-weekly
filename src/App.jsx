@@ -441,7 +441,7 @@ function ItemBlock({ item, idx, isLast }) {
       )}
 
       {/* 分割线：上下对称（my-24），且最后一条不显示 */}
-      {!isLast && <hr className="my-24 border-neutral-200 dark:border-neutral-800" />}
+      {!isLast && <hr className="my-48 border-neutral-200 dark:border-neutral-800" />}
     </section>
   );
 }
