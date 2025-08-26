@@ -277,7 +277,8 @@ function IssueCard({ issue, onClick }) {
         </h3>
         <div className="flex items-center gap-3 text-xs text-neutral-500 dark:text-neutral-400">
           <span className="inline-flex items-center gap-1"><Calendar className="h-3.5 w-3.5" /> {fmtDate(issue.start)} — {fmtDate(issue.end)}</span>
-          {issue.publishedAt && <span className="inline-flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> {fmtDateTime(issue.publishedAt)}</span>}
+          {issue.publishedAt && <span className="inline-flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> {fmtMonthDay(issue.publishedAt)}</span>
+}
         </div>
         {(issue.summaryCN || issue.summaryEN) && (
           <p className="line-clamp-2 text-[15px] text-neutral-700 dark:text-neutral-300">
