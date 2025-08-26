@@ -322,7 +322,7 @@ function IssuePage({ issue, onBack }) {
             {issue.summaryEN && (
               <>
                 <span className="mx-2 text-neutral-400">/</span>
-                <span className="italic font-serif text-[15px] text-neutral-600 dark:text-neutral-400">{issue.summaryEN}</span>
+                <span className="text-[15px] text-neutral-600 dark:text-neutral-400"> {issue.summaryEN} </span>
               </>
             )}
           </p>
