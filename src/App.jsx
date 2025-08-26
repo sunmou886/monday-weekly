@@ -10,9 +10,8 @@ import { Calendar, Clock, Link as LinkIcon, Share2, Upload, Download, Search, Ch
  * - English lines: 2px smaller than Chinese, serif, italic, lighter color
  * - Each item supports: title, facts (CN/EN), key info row, image (src/caption/credit/url), links (official + media), and Why it matters (CN/EN)
  * - Import/Export JSON (for weekly content ops); localStorage persistence
- * - Permalinks: #/issue/{issueId} where issueId = YYYY-MM-DD_YYYY-MM-DD (SGT week window)
- * - Copy-link share and subtle hover interactions in Medium style
- * - Theme: system / light / dark with manual segmented toggle, persists per device
+ * - Permalinks: #/issue/{issueId} where issueId = YYYY-MM-DD_YYYY-MM-DD
+ * - Theme: system / light / dark with segmented toggle, persists per device
  * - Admin controls (Share/Import/Export) hidden unless key via ?key=... matches VITE_ADMIN_KEY
  */
 
@@ -63,8 +62,7 @@ function useTheme() {
     mql.addEventListener('change', onChange);
     return () => mql.removeEventListener('change', onChange);
   }, [theme]);
-  const cycle = () => setTheme(t => t === 'system' ? 'light' : t === 'light' ? 'dark' : 'system');
-  return { theme, setTheme, cycle };
+  return { theme, setTheme };
 }
 
 // Admin gate: show controls only if key matches (?key=...) or debug
@@ -177,7 +175,7 @@ export default function MondayWeekly() {
         />
       )}
 
-      {/* Floating segmented theme switcher (always visible) */}
+      {/* Floating segmented theme switcher (system / light / dark) */}
       <ThemeSwitch theme={theme} onChange={setTheme} />
 
       <Footer />
@@ -229,7 +227,8 @@ function Logo() {
   return (
     <a href="#/" className="group inline-flex items-center gap-2">
       <div className="rounded-sm bg-black px-2 py-1 text-xs font-semibold tracking-widest text-white">MON</div>
-      <div className="text-xl font-serif tracking-tight group-hover:opacity-80">Monday Weekly</div>
+      {/* 标题改为无衬线 */}
+      <div className="text-xl font-sans tracking-tight group-hover:opacity-80">Monday Weekly</div>
     </a>
   );
 }
@@ -266,7 +265,8 @@ function ArchivePage({ issues, q, setQ, openIssue }) {
   return (
     <section className="py-8 sm:py-10">
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-serif sm:text-3xl">Archive / 存档</h1>
+        {/* H1 改为无衬线 */}
+        <h1 className="text-2xl font-sans sm:text-3xl">Archive / 存档</h1>
         <div className="relative">
           <Search className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-neutral-400" />
           <input
@@ -307,7 +307,8 @@ function IssueCard({ issue, onClick }) {
         )}
       </div>
       <div className="space-y-2 p-5">
-        <h3 className="line-clamp-2 font-serif text-lg leading-snug sm:text-xl">{issue.title || `${fmtDate(issue.start)} — ${fmtDate(issue.end)}`}</h3>
+        {/* 期标题改为无衬线 */}
+        <h3 className="line-clamp-2 font-sans text-lg leading-snug sm:text-xl">{issue.title || `${fmtDate(issue.start)} — ${fmtDate(issue.end)}`}</h3>
         <div className="flex items-center gap-3 text-xs text-neutral-500 dark:text-neutral-400">
           <span className="inline-flex items-center gap-1"><Calendar className="h-3.5 w-3.5" /> {fmtDate(issue.start)} — {fmtDate(issue.end)}</span>
           {issue.publishedAt && (
@@ -340,7 +341,8 @@ function IssuePage({ issue, onBack }) {
       </button>
 
       <header className="mx-auto max-w-3xl">
-        <h1 className="mb-3 font-serif text-3xl leading-tight sm:text-4xl">{issue.title || `${fmtDate(issue.start)} — ${fmtDate(issue.end)} Weekly`}</h1>
+        {/* H1 改为无衬线 */}
+        <h1 className="mb-3 font-sans text-3xl leading-tight sm:text-4xl">{issue.title || `${fmtDate(issue.start)} — ${fmtDate(issue.end)} Weekly`}</h1>
         <div className="mb-6 flex flex-wrap items-center gap-3 text-sm text-neutral-500 dark:text-neutral-400">
           <span className="inline-flex items-center gap-1"><Calendar className="h-4 w-4" /> {fmtDate(issue.start)} — {fmtDate(issue.end)}</span>
           {issue.publishedAt && <span className="inline-flex items-center gap-1"><Clock className="h-4 w-4" /> {fmtDateTime(issue.publishedAt)}</span>}
@@ -374,7 +376,8 @@ function IssuePage({ issue, onBack }) {
 function ItemBlock({ item, idx }) {
   return (
     <section className="space-y-4">
-      <h2 className="font-serif text-2xl leading-snug">
+      {/* H2 改为无衬线 */}
+      <h2 className="font-sans text-2xl leading-snug">
         <span className="mr-2 text-neutral-400">{String(idx).padStart(2,'0')}</span>
         {item.title}
       </h2>
@@ -429,7 +432,7 @@ function ItemBlock({ item, idx }) {
       {/* Why it matters */}
       {(item.whyCN || item.whyEN) && (
         <div className="rounded-xl bg-neutral-50 p-4 text-[15px] text-neutral-800 dark:bg-neutral-900 dark:text-neutral-200">
-          <div className="font-medium">这为什么重要 / Why it matters</div>
+          <div className="font-sans font-medium">这为什么重要 / Why it matters</div>
           {item.whyCN && <p className="mt-1 text-[15px]">{item.whyCN}</p>}
           {item.whyEN && <p className="italic font-serif text-[13px] text-neutral-600 dark:text-neutral-400">{item.whyEN}</p>}
         </div>
@@ -438,7 +441,7 @@ function ItemBlock({ item, idx }) {
       {/* Updates */}
       {Array.isArray(item.updates) && item.updates.length > 0 && (
         <div className="rounded-xl border border-neutral-200 p-4 text-[14.5px] dark:border-neutral-800">
-          <div className="mb-1 font-medium">有何变化 / What changed</div>
+          <div className="mb-1 font-sans font-medium">有何变化 / What changed</div>
           <ul className="list-disc space-y-1 pl-5 text-neutral-700 dark:text-neutral-300">
             {item.updates.map((u, i) => (
               <li key={i}>
@@ -502,8 +505,8 @@ function Importer({ close, onImport }) {
       onImport(payload);
       close();
     } catch (e) {
-      const hasBackslash = /\[^"\/bfnrtu]/.test(text);
-      const hint = hasBackslash ? " Hint: check backslashes (use \ or valid \uXXXX escapes)." : "";
+      const hasBackslash = /\\[^"\\/bfnrtu]/.test(text);
+      const hint = hasBackslash ? " Hint: check backslashes (use \\ or valid \\uXXXX escapes)." : "";
       setError(e.message + hint);
     }
   };
@@ -512,7 +515,7 @@ function Importer({ close, onImport }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
       <div ref={dialogRef} className="w-full max-w-3xl rounded-2xl bg-white p-6 shadow-xl dark:bg-neutral-900">
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-lg font-semibold">Import JSON / 导入周报数据</h3>
+          <h3 className="text-lg font-sans font-semibold">Import JSON / 导入周报数据</h3>
           <button onClick={close} className="rounded-full border border-neutral-300 px-2 py-1 text-xs hover:bg-neutral-50 dark:border-neutral-600 dark:hover:bg-neutral-800">Close</button>
         </div>
         <p className="mb-3 text-sm text-neutral-600 dark:text-neutral-400">Paste a JSON payload following the schema in the source code comment. Existing issues with the same id will be replaced.</p>
