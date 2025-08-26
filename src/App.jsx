@@ -342,7 +342,7 @@ function IssuePage({ issue, onBack }) {
       <header className="mx-auto max-w-3xl">
         {/* H1 无衬线 + 粗体 */}
         <h1 className="mb-3 font-sans font-bold text-3xl leading-tight sm:text-4xl">{issue.title || `${fmtDate(issue.start)} — ${fmtDate(issue.end)} Weekly`}</h1>
-        <div className="mb-6 flex flex-wrap items-center gap-3 text-sm text-neutral-500 dark:text-neutral-400">
+        <div className="mb-6 flex flex-wrap items-center gap-4 text-sm text-neutral-500 dark:text-neutral-400">
           <span className="inline-flex items-center gap-1"><Calendar className="h-4 w-4" /> {fmtDate(issue.start)} — {fmtDate(issue.end)}</span>
           {issue.publishedAt && <span className="inline-flex items-center gap-1"><Clock className="h-4 w-4" /> {fmtDateTime(issue.publishedAt)}</span>}
         </div>
@@ -388,7 +388,7 @@ function ItemBlock({ item, idx, isLast }) {
       </h2>
 
       {/* Facts */}
-      <div className="space-y-2">
+      <div className="space-y-4 sm:space-y-5">
         {Array.isArray(item.factsCN) && item.factsCN.map((s, i) => (
           <p key={`cn-${i}`} className="text-[16px] leading-7 text-neutral-900 dark:text-neutral-100">{s}</p>
         ))}
@@ -436,15 +436,15 @@ function ItemBlock({ item, idx, isLast }) {
 
       {/* Why it matters */}
       {(item.whyCN || item.whyEN) && (
-        <div className="rounded-xl bg-neutral-50 p-4 text-[15px] text-neutral-800 dark:bg-neutral-900 dark:text-neutral-200">
+        <div className="rounded-xl bg-neutral-50 p-4 text-[15px] text-neutral-800 dark:bg-neutral-900 dark:text-neutral-200 space-y-3">
           <div className="font-sans font-bold">这为什么重要 / Why it matters</div>
-          {item.whyCN && <p className="mt-1 text-[15px]">{item.whyCN}</p>}
+          {item.whyCN && <p className="mt-0 text-[15px]">{item.whyCN}</p>}
           {item.whyEN && <p className="italic font-serif text-[13px] text-neutral-600 dark:text-neutral-400">{item.whyEN}</p>}
         </div>
       )}
 
       {/* 分割线：上下对称（my-24），且最后一条不显示 */}
-      {!isLast && <hr className="my-24 border-neutral-200 dark:border-neutral-800" />}
+      {!isLast && <hr className="my-48 border-neutral-200 dark:border-neutral-800" />}
     </section>
   );
 }
