@@ -402,7 +402,7 @@ function ItemBlock({ item, idx, isLast }) {
         <div className="rounded-xl bg-neutral-50 p-4 text-[15px] text-neutral-800 dark:bg-neutral-900 dark:text-neutral-200">
           <div className="font-sans font-bold">这为什么重要 / Why it matters</div>
           {item.whyCN && <p className="mt-1 text-[15px]">{item.whyCN}</p>}
-          {item.whyEN && <p className="italic font-serif text-[13px] text-neutral-600 dark:text-neutral-400">{item.whyEN}</p>}
+          {item.whyEN && <p className="text-[13px] text-neutral-600 dark:text-neutral-400"> {item.whyEN} </p>
         </div>
       )}
 
