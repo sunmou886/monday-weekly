@@ -315,7 +315,8 @@ function IssuePage({ issue, onBack }) {
         </h1>
         <div className="mb-6 flex flex-wrap items-center gap-3 text-sm text-neutral-500 dark:text-neutral-400">
           <span className="inline-flex items-center gap-1"><Calendar className="h-4 w-4" /> {fmtDate(issue.start)} — {fmtDate(issue.end)}</span>
-          {issue.publishedAt && <span className="inline-flex items-center gap-1"><Clock className="h-4 w-4" /> {fmtDateTime(issue.publishedAt)}</span>}
+          {issue.publishedAt && <span className="inline-flex items-center gap-1"><Clock className="h-4 w-4" /> {fmtMonthDay(issue.publishedAt)}</span>
+}
         </div>
         {(issue.summaryCN || issue.summaryEN) && (
           <p className="mb-8 text-[17px] leading-7 text-neutral-800 dark:text-neutral-200">
