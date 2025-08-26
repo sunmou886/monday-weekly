@@ -227,7 +227,7 @@ function Logo() {
   return (
     <a href="#/" className="group inline-flex items-center gap-2">
       <div className="rounded-sm bg-black px-2 py-1 text-xs font-semibold tracking-widest text-white">MON</div>
-      {/* 标题改为无衬线 */}
+      {/* 标题为无衬线 */}
       <div className="text-xl font-sans tracking-tight group-hover:opacity-80">Monday Weekly</div>
     </a>
   );
@@ -265,7 +265,7 @@ function ArchivePage({ issues, q, setQ, openIssue }) {
   return (
     <section className="py-8 sm:py-10">
       <div className="mb-6 flex items-center justify-between">
-        {/* H1 改为无衬线 */}
+        {/* H1 无衬线 */}
         <h1 className="text-2xl font-sans sm:text-3xl">Archive / 存档</h1>
         <div className="relative">
           <Search className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-neutral-400" />
@@ -307,7 +307,7 @@ function IssueCard({ issue, onClick }) {
         )}
       </div>
       <div className="space-y-2 p-5">
-        {/* 期标题改为无衬线 */}
+        {/* 期标题无衬线 */}
         <h3 className="line-clamp-2 font-sans text-lg leading-snug sm:text-xl">{issue.title || `${fmtDate(issue.start)} — ${fmtDate(issue.end)}`}</h3>
         <div className="flex items-center gap-3 text-xs text-neutral-500 dark:text-neutral-400">
           <span className="inline-flex items-center gap-1"><Calendar className="h-3.5 w-3.5" /> {fmtDate(issue.start)} — {fmtDate(issue.end)}</span>
@@ -341,7 +341,7 @@ function IssuePage({ issue, onBack }) {
       </button>
 
       <header className="mx-auto max-w-3xl">
-        {/* H1 改为无衬线 */}
+        {/* H1 无衬线 */}
         <h1 className="mb-3 font-sans text-3xl leading-tight sm:text-4xl">{issue.title || `${fmtDate(issue.start)} — ${fmtDate(issue.end)} Weekly`}</h1>
         <div className="mb-6 flex flex-wrap items-center gap-3 text-sm text-neutral-500 dark:text-neutral-400">
           <span className="inline-flex items-center gap-1"><Calendar className="h-4 w-4" /> {fmtDate(issue.start)} — {fmtDate(issue.end)}</span>
@@ -360,11 +360,17 @@ function IssuePage({ issue, onBack }) {
         )}
       </header>
 
-      <div className="mx-auto max-w-3xl space-y-10">
+      {/* 主体：加大每条之间间距 + 分割线上下对称 */}
+      <div className="mx-auto max-w-3xl">
         {issue.items?.length ? issue.items.map((item, idx) => (
-          <ItemBlock key={idx} item={item} idx={idx+1} />
+          <ItemBlock
+            key={idx}
+            item={item}
+            idx={idx + 1}
+            isLast={idx === issue.items.length - 1}
+          />
         )) : (
-          <div className="rounded-2xl border border-dashed border-neutral-300 p-8 text-center text-neutral-500 dark:border-neutral-700 dark:text-neutral-400">
+          <div className="my-12 rounded-2xl border border-dashed border-neutral-300 p-8 text-center text-neutral-500 dark:border-neutral-700 dark:text-neutral-400">
             No items yet. Use "Import / 导入" to add content for this week.
           </div>
         )}
@@ -373,10 +379,10 @@ function IssuePage({ issue, onBack }) {
   );
 }
 
-function ItemBlock({ item, idx }) {
+function ItemBlock({ item, idx, isLast }) {
   return (
-    <section className="space-y-4">
-      {/* H2 改为无衬线 */}
+    <section className="space-y-5 sm:space-y-6 py-2">
+      {/* H2 无衬线 */}
       <h2 className="font-sans text-2xl leading-snug">
         <span className="mr-2 text-neutral-400">{String(idx).padStart(2,'0')}</span>
         {item.title}
@@ -438,22 +444,8 @@ function ItemBlock({ item, idx }) {
         </div>
       )}
 
-      {/* Updates */}
-      {Array.isArray(item.updates) && item.updates.length > 0 && (
-        <div className="rounded-xl border border-neutral-200 p-4 text-[14.5px] dark:border-neutral-800">
-          <div className="mb-1 font-sans font-medium">有何变化 / What changed</div>
-          <ul className="list-disc space-y-1 pl-5 text-neutral-700 dark:text-neutral-300">
-            {item.updates.map((u, i) => (
-              <li key={i}>
-                <span className="text-neutral-900 dark:text-neutral-100">{u.cn}</span>
-                {u.en && <span className="text-neutral-600 dark:text-neutral-400"> / {u.en}</span>}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      <hr className="mt-6 border-neutral-200 dark:border-neutral-800" />
+      {/* 分割线：上下对称，且最后一条不显示 */}
+      {!isLast && <hr className="my-12 border-neutral-200 dark:border-neutral-800" />}
     </section>
   );
 }
