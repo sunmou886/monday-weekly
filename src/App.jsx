@@ -8,7 +8,7 @@ import {
  * Monday Weekly — Medium-style archive & post page (single-file React app)
  * - Medium-like UI (Tailwind)
  * - Archive + issue reader (hash routing)
- * - Bilingual facts (CN first, EN second); EN is smaller/italic/serif by style elsewhere
+ * - Bilingual facts (CN first, EN second); EN now NOT italic/serif (uses global MapleMono via CSS)
  * - System theme only (no manual switch)
  * - Share button in header; Import/Export behind admin key
  */
@@ -285,7 +285,7 @@ function IssueCard({ issue, onClick }) {
             {issue.summaryEN && (
               <>
                 <span className="mx-2 text-neutral-400">/</span>
-                <span className="text-[13px] text-neutral-600 dark:text-neutral-400"> {issue.summaryEN} </span>
+                <span className="text-[13px] text-neutral-600 dark:text-neutral-400">{issue.summaryEN}</span>
               </>
             )}
           </p>
@@ -322,7 +322,7 @@ function IssuePage({ issue, onBack }) {
             {issue.summaryEN && (
               <>
                 <span className="mx-2 text-neutral-400">/</span>
-                <span className="text-[15px] text-neutral-600 dark:text-neutral-400"> {issue.summaryEN} </span>
+                <span className="text-[15px] text-neutral-600 dark:text-neutral-400">{issue.summaryEN}</span>
               </>
             )}
           </p>
@@ -356,11 +356,8 @@ function ItemBlock({ item, idx, isLast }) {
           <p key={`cn-${i}`} className="text-[16px] leading-7 text-neutral-900 dark:text-neutral-100">{s}</p>
         ))}
         {Array.isArray(item.factsEN) && item.factsEN.map((s, i) => (
-  <p key={`en-${i}`} className="text-[14px] leading-7 text-neutral-700 dark:text-neutral-300">
-    {s}
-  </p>
-))}
-
+          <p key={`en-${i}`} className="text-[14px] leading-7 text-neutral-700 dark:text-neutral-300">{s}</p>
+        ))}
       </div>
 
       {item.keyInfo && <KeyInfoRow info={item.keyInfo} />}
@@ -405,7 +402,7 @@ function ItemBlock({ item, idx, isLast }) {
         <div className="rounded-xl bg-neutral-50 p-4 text-[15px] text-neutral-800 dark:bg-neutral-900 dark:text-neutral-200">
           <div className="font-sans font-bold">这为什么重要 / Why it matters</div>
           {item.whyCN && <p className="mt-1 text-[15px]">{item.whyCN}</p>}
-          {item.whyEN && <p className="text-[13px] text-neutral-600 dark:text-neutral-400"> {item.whyEN} </p>
+          {item.whyEN && <p className="text-[13px] text-neutral-600 dark:text-neutral-400">{item.whyEN}</p>}
         </div>
       )}
 
