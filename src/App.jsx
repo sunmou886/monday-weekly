@@ -11,7 +11,7 @@ import { Calendar, Clock, Link as LinkIcon, Share2, Upload, Download, Search, Ch
  * - Each item supports: title, facts (CN/EN), key info row, image (src/caption/credit/url), links (official + media), and Why it matters (CN/EN)
  * - Import/Export JSON (for weekly content ops); localStorage persistence
  * - Permalinks: #/issue/{issueId} where issueId = YYYY-MM-DD_YYYY-MM-DD
- * - Theme: system / light / dark with segmented toggle, persists per device
+ * - Theme: system / light / dark with segmented toggle (now in header, right end)
  * - Admin controls (Share/Import/Export) hidden unless key via ?key=... matches VITE_ADMIN_KEY
  */
 
@@ -146,7 +146,7 @@ export default function MondayWeekly() {
 
   return (
     <div className="min-h-screen bg-white text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100">
-      <Header onImport={() => setShowImporter(true)} data={data} setData={setData} isAdmin={isAdmin} />
+      <Header onImport={() => setShowImporter(true)} data={data} setData={setData} isAdmin={isAdmin} theme={theme} onThemeChange={setTheme} />
 
       <main className="mx-auto w-full max-w-5xl px-4 sm:px-6 lg:px-8">
         {route === "issue" && currentIssue ? (
@@ -175,9 +175,6 @@ export default function MondayWeekly() {
         />
       )}
 
-      {/* Floating segmented theme switcher (system / light / dark) */}
-      <ThemeSwitch theme={theme} onChange={setTheme} />
-
       <Footer />
       <TestPanel />
     </div>
@@ -185,39 +182,41 @@ export default function MondayWeekly() {
 }
 
 // --- Header -----------------------------------------------------------------
-function Header({ onImport, data, setData, isAdmin }) {
+function Header({ onImport, data, setData, isAdmin, theme, onThemeChange }) {
   return (
     <header className="sticky top-0 z-40 border-b border-neutral-200 bg-white/80 backdrop-blur dark:border-neutral-800 dark:bg-neutral-900/80">
       <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
         <div className="flex items-center gap-3">
           <Logo />
         </div>
-        {/* Admin controls hidden from public */}
-        {isAdmin && (
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => copy(window.location.href)}
-              className="inline-flex items-center gap-2 rounded-full border border-neutral-300 px-3 py-1.5 text-sm hover:bg-neutral-50 dark:border-neutral-600 dark:hover:bg-neutral-800"
-              title="Copy page link"
-            >
-              <Share2 className="h-4 w-4" /> Share
-            </button>
-            <button
-              onClick={onImport}
-              className="inline-flex items-center gap-2 rounded-full border border-neutral-300 px-3 py-1.5 text-sm hover:bg-neutral-50 dark:border-neutral-600 dark:hover:bg-neutral-800"
-              title="Import JSON"
-            >
-              <Upload className="h-4 w-4" /> Import / 导入
-            </button>
-            <button
-              onClick={() => downloadJSON(STORAGE_KEY, data)}
-              className="inline-flex items-center gap-2 rounded-full border border-neutral-300 px-3 py-1.5 text-sm hover:bg-neutral-50 dark:border-neutral-600 dark:hover:bg-neutral-800"
-              title="Export JSON"
-            >
-              <Download className="h-4 w-4" /> Export
-            </button>
-          </div>
-        )}
+        <div className="flex items-center gap-2">
+          <ThemeSwitch theme={theme} onChange={onThemeChange} />
+          {isAdmin && (
+            <>
+              <button
+                onClick={() => copy(window.location.href)}
+                className="inline-flex items-center gap-2 rounded-full border border-neutral-300 px-3 py-1.5 text-sm hover:bg-neutral-50 dark:border-neutral-600 dark:hover:bg-neutral-800"
+                title="Copy page link"
+              >
+                <Share2 className="h-4 w-4" /> Share
+              </button>
+              <button
+                onClick={onImport}
+                className="inline-flex items-center gap-2 rounded-full border border-neutral-300 px-3 py-1.5 text-sm hover:bg-neutral-50 dark:border-neutral-600 dark:hover:bg-neutral-800"
+                title="Import JSON"
+              >
+                <Upload className="h-4 w-4" /> Import / 导入
+              </button>
+              <button
+                onClick={() => downloadJSON(STORAGE_KEY, data)}
+                className="inline-flex items-center gap-2 rounded-full border border-neutral-300 px-3 py-1.5 text-sm hover:bg-neutral-50 dark:border-neutral-600 dark:hover:bg-neutral-800"
+                title="Export JSON"
+              >
+                <Download className="h-4 w-4" /> Export
+              </button>
+            </>
+          )}
+        </div>
       </div>
     </header>
   );
@@ -227,13 +226,13 @@ function Logo() {
   return (
     <a href="#/" className="group inline-flex items-center gap-2">
       <div className="rounded-sm bg-black px-2 py-1 text-xs font-semibold tracking-widest text-white">MON</div>
-      {/* 标题改为无衬线 */}
+      {/* 品牌名保持无衬线，可按需加粗 */}
       <div className="text-xl font-sans tracking-tight group-hover:opacity-80">Monday Weekly</div>
     </a>
   );
 }
 
-// --- Floating Theme Switch --------------------------------------------------
+// --- Theme Switch (nav pill) -------------------------------------------------
 function ThemeSwitch({ theme, onChange }) {
   const item = (key, Icon) => (
     <button
@@ -241,8 +240,8 @@ function ThemeSwitch({ theme, onChange }) {
       aria-pressed={theme === key}
       onClick={() => onChange(key)}
       className={classNames(
-        "h-8 w-8 rounded-full grid place-items-center text-neutral-300 hover:text-white",
-        theme === key ? "bg-white/15 ring-2 ring-white/60 text-white" : ""
+        "h-8 w-8 rounded-full grid place-items-center text-neutral-500 hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-white",
+        theme === key ? "ring-2 ring-neutral-300 dark:ring-white/60 text-neutral-900 dark:text-white bg-white/10" : ""
       )}
       title={key}
     >
@@ -250,7 +249,7 @@ function ThemeSwitch({ theme, onChange }) {
     </button>
   );
   return (
-    <div className="fixed bottom-6 right-6 z-50 rounded-full border border-white/10 bg-black/60 p-1 backdrop-blur shadow-lg dark:border-white/15">
+    <div className="rounded-full border border-neutral-300 bg-white/70 p-1 backdrop-blur shadow-sm dark:border-neutral-600 dark:bg-neutral-800/70">
       <div className="flex items-center gap-1">
         {item('system', Monitor)}
         {item('light', Sun)}
@@ -265,8 +264,8 @@ function ArchivePage({ issues, q, setQ, openIssue }) {
   return (
     <section className="py-8 sm:py-10">
       <div className="mb-6 flex items-center justify-between">
-        {/* H1 改为无衬线 */}
-        <h1 className="text-2xl font-sans sm:text-3xl">Archive / 存档</h1>
+        {/* H1 无衬线 + 粗体 */}
+        <h1 className="text-2xl font-sans font-bold sm:text-3xl">Archive / 存档</h1>
         <div className="relative">
           <Search className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-neutral-400" />
           <input
@@ -307,8 +306,8 @@ function IssueCard({ issue, onClick }) {
         )}
       </div>
       <div className="space-y-2 p-5">
-        {/* 期标题改为无衬线 */}
-        <h3 className="line-clamp-2 font-sans text-lg leading-snug sm:text-xl">{issue.title || `${fmtDate(issue.start)} — ${fmtDate(issue.end)}`}</h3>
+        {/* 期标题无衬线 + 粗体 */}
+        <h3 className="line-clamp-2 font-sans font-bold text-lg leading-snug sm:text-xl">{issue.title || `${fmtDate(issue.start)} — ${fmtDate(issue.end)}`}</h3>
         <div className="flex items-center gap-3 text-xs text-neutral-500 dark:text-neutral-400">
           <span className="inline-flex items-center gap-1"><Calendar className="h-3.5 w-3.5" /> {fmtDate(issue.start)} — {fmtDate(issue.end)}</span>
           {issue.publishedAt && (
@@ -341,9 +340,9 @@ function IssuePage({ issue, onBack }) {
       </button>
 
       <header className="mx-auto max-w-3xl">
-        {/* H1 改为无衬线 */}
-        <h1 className="mb-3 font-sans text-3xl leading-tight sm:text-4xl">{issue.title || `${fmtDate(issue.start)} — ${fmtDate(issue.end)} Weekly`}</h1>
-        <div className="mb-6 flex flex-wrap items-center gap-3 text-sm text-neutral-500 dark:text-neutral-400">
+        {/* H1 无衬线 + 粗体 */}
+        <h1 className="mb-3 font-sans font-bold text-3xl leading-tight sm:text-4xl">{issue.title || `${fmtDate(issue.start)} — ${fmtDate(issue.end)} Weekly`}</h1>
+        <div className="mb-6 flex flex-wrap items-center gap-4 text-sm text-neutral-500 dark:text-neutral-400">
           <span className="inline-flex items-center gap-1"><Calendar className="h-4 w-4" /> {fmtDate(issue.start)} — {fmtDate(issue.end)}</span>
           {issue.publishedAt && <span className="inline-flex items-center gap-1"><Clock className="h-4 w-4" /> {fmtDateTime(issue.publishedAt)}</span>}
         </div>
@@ -360,11 +359,17 @@ function IssuePage({ issue, onBack }) {
         )}
       </header>
 
-      <div className="mx-auto max-w-3xl space-y-10">
+      {/* 主体：加大每条之间间距 + 分割线上下对称（双倍） */}
+      <div className="mx-auto max-w-3xl">
         {issue.items?.length ? issue.items.map((item, idx) => (
-          <ItemBlock key={idx} item={item} idx={idx+1} />
+          <ItemBlock
+            key={idx}
+            item={item}
+            idx={idx + 1}
+            isLast={idx === issue.items.length - 1}
+          />
         )) : (
-          <div className="rounded-2xl border border-dashed border-neutral-300 p-8 text-center text-neutral-500 dark:border-neutral-700 dark:text-neutral-400">
+          <div className="my-24 rounded-2xl border border-dashed border-neutral-300 p-8 text-center text-neutral-500 dark:border-neutral-700 dark:text-neutral-400">
             No items yet. Use "Import / 导入" to add content for this week.
           </div>
         )}
@@ -373,17 +378,17 @@ function IssuePage({ issue, onBack }) {
   );
 }
 
-function ItemBlock({ item, idx }) {
+function ItemBlock({ item, idx, isLast }) {
   return (
-    <section className="space-y-4">
-      {/* H2 改为无衬线 */}
-      <h2 className="font-sans text-2xl leading-snug">
+    <section className="space-y-5 sm:space-y-6 py-2">
+      {/* H2 无衬线 + 粗体 */}
+      <h2 className="font-sans font-bold text-2xl leading-snug">
         <span className="mr-2 text-neutral-400">{String(idx).padStart(2,'0')}</span>
         {item.title}
       </h2>
 
       {/* Facts */}
-      <div className="space-y-2">
+      <div className="space-y-4 sm:space-y-5">
         {Array.isArray(item.factsCN) && item.factsCN.map((s, i) => (
           <p key={`cn-${i}`} className="text-[16px] leading-7 text-neutral-900 dark:text-neutral-100">{s}</p>
         ))}
@@ -431,29 +436,15 @@ function ItemBlock({ item, idx }) {
 
       {/* Why it matters */}
       {(item.whyCN || item.whyEN) && (
-        <div className="rounded-xl bg-neutral-50 p-4 text-[15px] text-neutral-800 dark:bg-neutral-900 dark:text-neutral-200">
-          <div className="font-sans font-medium">这为什么重要 / Why it matters</div>
-          {item.whyCN && <p className="mt-1 text-[15px]">{item.whyCN}</p>}
+        <div className="rounded-xl bg-neutral-50 p-4 text-[15px] text-neutral-800 dark:bg-neutral-900 dark:text-neutral-200 space-y-3">
+          <div className="font-sans font-bold">这为什么重要 / Why it matters</div>
+          {item.whyCN && <p className="mt-0 text-[15px]">{item.whyCN}</p>}
           {item.whyEN && <p className="italic font-serif text-[13px] text-neutral-600 dark:text-neutral-400">{item.whyEN}</p>}
         </div>
       )}
 
-      {/* Updates */}
-      {Array.isArray(item.updates) && item.updates.length > 0 && (
-        <div className="rounded-xl border border-neutral-200 p-4 text-[14.5px] dark:border-neutral-800">
-          <div className="mb-1 font-sans font-medium">有何变化 / What changed</div>
-          <ul className="list-disc space-y-1 pl-5 text-neutral-700 dark:text-neutral-300">
-            {item.updates.map((u, i) => (
-              <li key={i}>
-                <span className="text-neutral-900 dark:text-neutral-100">{u.cn}</span>
-                {u.en && <span className="text-neutral-600 dark:text-neutral-400"> / {u.en}</span>}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      <hr className="mt-6 border-neutral-200 dark:border-neutral-800" />
+      {/* 分割线：上下对称（my-24），且最后一条不显示 */}
+      {!isLast && <hr className="my-48 border-neutral-200 dark:border-neutral-800" />}
     </section>
   );
 }
@@ -515,7 +506,7 @@ function Importer({ close, onImport }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
       <div ref={dialogRef} className="w-full max-w-3xl rounded-2xl bg-white p-6 shadow-xl dark:bg-neutral-900">
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-lg font-sans font-semibold">Import JSON / 导入周报数据</h3>
+          <h3 className="text-lg font-sans font-bold">Import JSON / 导入周报数据</h3>
           <button onClick={close} className="rounded-full border border-neutral-300 px-2 py-1 text-xs hover:bg-neutral-50 dark:border-neutral-600 dark:hover:bg-neutral-800">Close</button>
         </div>
         <p className="mb-3 text-sm text-neutral-600 dark:text-neutral-400">Paste a JSON payload following the schema in the source code comment. Existing issues with the same id will be replaced.</p>
