@@ -442,7 +442,7 @@ function ItemBlock({ item, idx, isLast }) {
 
       {/* 分割线：上下对称（my-24），且最后一条不显示 */}
       {!isLast && (
-        <div className="py-24">
+        <div className="py-12">
           <hr className="border-neutral-200 dark:border-neutral-800" />
         </div>
       )}
