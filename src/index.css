@@ -1,36 +1,81 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { Calendar, Clock, Link as LinkIcon, Share2, Upload, Download, Search, ChevronLeft, ExternalLink, Globe, Info } from "lucide-react";
 
 
-/* Maple Mono 仅用于 ASCII（英文/数字/常用标点）；其余文字回退到无衬线栈 */
-@font-face {
-font-family: 'MapleMonoAscii';
-src: url('/fonts/MapleMono/MapleMono-Regular.woff2') format('woff2'),
-url('https://cdn.jsdelivr.net/gh/subframe7536/maple-font/MapleMono/MapleMono-Regular.woff2') format('woff2');
-font-weight: 400;
-font-style: normal;
-font-display: swap;
-unicode-range: U+0000-00FF, U+2000-206F; /* Basic Latin + General Punctuation */
+/**
+* Monday Weekly — Medium-style archive & post page (single-file React app)
+* -------------------------------------------------------------
+* - Medium-like typography and spacing (Tailwind CSS)
+* - Archive of weekly issues + single-issue reader (hash routing)
+* - Bilingual (CN first, EN second) presentation per item
+* - English lines: 2px smaller than Chinese, serif, italic, lighter color
+* - Each item supports: title, facts (CN/EN), key info row, image (src/caption/credit/url), links (official + media), and Why it matters (CN/EN)
+* - Import/Export JSON (for weekly content ops); localStorage persistence
+* - Permalinks: #/issue/{issueId} where issueId = YYYY-MM-DD_YYYY-MM-DD
+* - Theme: system-follow only (no manual switch)
+* - Admin controls (Share/Import/Export) hidden unless key via ?key=... matches VITE_ADMIN_KEY
+*/
+
+
+// --- Utilities --------------------------------------------------------------
+const STORAGE_KEY = "monday.weekly.data.v1";
+const THEME_KEY = "mw.theme"; // 'system' | 'light' | 'dark'
+
+
+/** Format YYYY-MM-DD → Mon DD, YYYY */
+function fmtDate(iso) {
+if (!iso) return "";
+const d = new Date(iso);
+return d.toLocaleDateString("en-SG", { year: "numeric", month: "short", day: "2-digit" });
 }
-@font-face {
-font-family: 'MapleMonoAscii';
-src: url('/fonts/MapleMono/MapleMono-Bold.woff2') format('woff2'),
-url('https://cdn.jsdelivr.net/gh/subframe7536/maple-font/MapleMono/MapleMono-Bold.woff2') format('woff2');
-font-weight: 700;
-font-style: normal;
-font-display: swap;
-unicode-range: U+0000-00FF, U+2000-206F;
+
+
+/** Humanize publish datetime */
+function fmtDateTime(iso) {
+if (!iso) return "";
+const d = new Date(iso);
+return d.toLocaleString("en-SG", {
+year: "numeric", month: "short", day: "2-digit",
+hour: "2-digit", minute: "2-digit", hour12: false,
+timeZone: "Asia/Singapore"
+});
 }
 
 
-:root{
---stack-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji";
---stack-latin-mono: "MapleMonoAscii", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+function classNames(...xs) { return xs.filter(Boolean).join(" "); }
+
+
+// Theme helpers --------------------------------------------------------------
+function applyTheme(theme) {
+const root = document.documentElement;
+const preferDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+const isDark = theme === 'dark' || (theme === 'system' && preferDark);
+root.classList.toggle('dark', !!isDark);
 }
-/* 让英文/数字优先匹配 MapleMonoAscii；中文等不在该字体的字符自动回退到无衬线栈 */
-html, body, * { font-family: var(--stack-latin-mono), var(--stack-sans); }
 
 
-/* 可选：更平滑的字重渲染 */
-html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+// System-follow only (no manual switch)
+function useSystemThemeOnly() {
+useEffect(() => {
+try { localStorage.removeItem(THEME_KEY); } catch {}
+applyTheme('system');
+const mql = window.matchMedia('(prefers-color-scheme: dark)');
+const onChange = () => applyTheme('system');
+mql.addEventListener('change', onChange);
+return () => mql.removeEventListener('change', onChange);
+}, []);
+}
+
+
+// Admin gate: show controls only if key matches (?key=...) or debug
+function useAdmin() {
+const [isAdmin, setIsAdmin] = useState(() => {
+try { return localStorage.getItem("mw.admin") === "1"; } catch { return false; }
+});
+useEffect(() => {
+try {
+const params = new URLSearchParams(window.location.search);
+const urlKey = params.get("key") || "";
+const enableFlag = params.get("admin") === "1"; // fallback for local testing (disabled when env key is set)
+const envKey = (import.meta?.env?.VITE_ADMIN_KEY || "").trim();
+}
