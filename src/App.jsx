@@ -1,5 +1,12 @@
+以下两段分别用于：① `src/App.jsx`（放大条目标题=1.8rem、周报主标题=3rem）；② `src/index.css`（让所有英文与数字统一使用 Maple Mono，其他文字仍走系统无衬线）。
+
+---
+
+### `src/App.jsx`
+
+```jsx
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Calendar, Clock, Link as LinkIcon, Share2, Upload, Download, Search, ChevronLeft, ExternalLink, Globe, Info, Sun, Moon, Monitor } from "lucide-react";
+import { Calendar, Clock, Link as LinkIcon, Share2, Upload, Download, Search, ChevronLeft, ExternalLink, Globe, Info } from "lucide-react";
 
 /**
  * Monday Weekly — Medium-style archive & post page (single-file React app)
@@ -11,7 +18,7 @@ import { Calendar, Clock, Link as LinkIcon, Share2, Upload, Download, Search, Ch
  * - Each item supports: title, facts (CN/EN), key info row, image (src/caption/credit/url), links (official + media), and Why it matters (CN/EN)
  * - Import/Export JSON (for weekly content ops); localStorage persistence
  * - Permalinks: #/issue/{issueId} where issueId = YYYY-MM-DD_YYYY-MM-DD
- * - Theme: system / light / dark with segmented toggle (now in header, right end)
+ * - Theme: system-follow only (no manual switch)
  * - Admin controls (Share/Import/Export) hidden unless key via ?key=... matches VITE_ADMIN_KEY
  */
 
@@ -45,24 +52,6 @@ function applyTheme(theme) {
   const preferDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
   const isDark = theme === 'dark' || (theme === 'system' && preferDark);
   root.classList.toggle('dark', !!isDark);
-}
-
-function useTheme() {
-  const [theme, setTheme] = useState(() => {
-    try { return localStorage.getItem(THEME_KEY) || 'system'; } catch { return 'system'; }
-  });
-  useEffect(() => {
-    applyTheme(theme);
-    try { localStorage.setItem(THEME_KEY, theme); } catch {}
-  }, [theme]);
-  useEffect(() => {
-    if (theme !== 'system') return;
-    const mql = window.matchMedia('(prefers-color-scheme: dark)');
-    const onChange = () => applyTheme('system');
-    mql.addEventListener('change', onChange);
-    return () => mql.removeEventListener('change', onChange);
-  }, [theme]);
-  return { theme, setTheme };
 }
 
 // System-follow only (no manual switch)
@@ -261,7 +250,7 @@ function ArchivePage({ issues, q, setQ, openIssue }) {
   return (
     <section className="py-8 sm:py-10">
       <div className="mb-6 flex items-center justify-between">
-        {/* H1 无衬线 + 粗体 */}
+        {/* H1 无衬线 + 粗体（3rem 仅用于 Issue 页面，归档页继续常规） */}
         <h1 className="text-2xl font-sans font-bold sm:text-3xl">Archive / 存档</h1>
         <div className="relative">
           <Search className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-neutral-400" />
@@ -337,8 +326,8 @@ function IssuePage({ issue, onBack }) {
       </button>
 
       <header className="mx-auto max-w-3xl">
-        {/* H1 无衬线 + 粗体 */}
-        <h1 className="mb-3 font-sans font-bold text-3xl leading-tight sm:text-4xl">{issue.title || `${fmtDate(issue.start)} — ${fmtDate(issue.end)} Weekly`}</h1>
+        {/* 周报主标题：3rem */}
+        <h1 className="mb-3 font-sans font-bold leading-tight text-[3rem]">{issue.title || `${fmtDate(issue.start)} — ${fmtDate(issue.end)} Weekly`}</h1>
         <div className="mb-6 flex flex-wrap items-center gap-3 text-sm text-neutral-500 dark:text-neutral-400">
           <span className="inline-flex items-center gap-1"><Calendar className="h-4 w-4" /> {fmtDate(issue.start)} — {fmtDate(issue.end)}</span>
           {issue.publishedAt && <span className="inline-flex items-center gap-1"><Clock className="h-4 w-4" /> {fmtDateTime(issue.publishedAt)}</span>}
@@ -356,7 +345,7 @@ function IssuePage({ issue, onBack }) {
         )}
       </header>
 
-      {/* 主体：加大每条之间间距 + 分割线上下对称（双倍） */}
+      {/* 主体 */}
       <div className="mx-auto max-w-3xl">
         {issue.items?.length ? issue.items.map((item, idx) => (
           <ItemBlock
@@ -378,8 +367,8 @@ function IssuePage({ issue, onBack }) {
 function ItemBlock({ item, idx, isLast }) {
   return (
     <section className="space-y-5 sm:space-y-6 py-2">
-      {/* H2 无衬线 + 粗体 */}
-      <h2 className="font-sans font-bold text-2xl leading-snug">
+      {/* 每条消息的标题：1.8rem */}
+      <h2 className="font-sans font-bold leading-snug text-[1.8rem]">
         <span className="mr-2 text-neutral-400">{String(idx).padStart(2,'0')}</span>
         {item.title}
       </h2>
@@ -440,7 +429,7 @@ function ItemBlock({ item, idx, isLast }) {
         </div>
       )}
 
-      {/* 分割线：上下对称（my-12），且最后一条不显示 */}
+      {/* 分割线：最后一条不显示；间距保持你当前设置 */}
       {!isLast && (
         <div className="py-12">
           <hr className="border-neutral-200 dark:border-neutral-800" />
@@ -599,14 +588,10 @@ function TestPanel() {
   if (!enabled) return null;
 
   const results = [];
-  // Test: parseHashFromString
   results.push(test("parseHashFromString home", () => deepEqual(parseHashFromString(""), { name: "home", params: [] })));
   results.push(test("parseHashFromString issue", () => deepEqual(parseHashFromString("#/issue/2025-08-18_2025-08-24"), { name: "issue", params: ["2025-08-18_2025-08-24"] })));
-  // Test: fmtDate
   results.push(test("fmtDate basic", () => typeof fmtDate("2025-08-18") === "string" && fmtDate("2025-08-18").length > 0));
-  // Test: fmtDateTime
   results.push(test("fmtDateTime basic", () => typeof fmtDateTime("2025-08-25T10:00:00+08:00") === "string"));
-  // Test: mergeIssues
   results.push(test("mergeIssues merges unique by id, remote wins", () => {
     const local = [{ id: 'A', start: '2025-01-01' }, { id: 'B', start: '2025-01-02' }];
     const remote = [{ id: 'B', start: '2025-02-02', marker: 'remote' }, { id: 'C', start: '2025-01-03' }];
@@ -657,3 +642,44 @@ function mergeIssues(localIssues = [], remoteIssues = []) {
   for (const i of remoteIssues) if (i?.id) map.set(i.id, i); // remote overwrites local on collision
   return Array.from(map.values());
 }
+```
+
+---
+
+### `src/index.css`
+
+```css
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Maple Mono 仅用于 ASCII（英文/数字/常用标点）；其余文字回退到无衬线栈 */
+@font-face {
+  font-family: 'MapleMonoAscii';
+  src: url('/fonts/MapleMono/MapleMono-Regular.woff2') format('woff2'),
+       url('https://cdn.jsdelivr.net/gh/subframe7536/maple-font/MapleMono/MapleMono-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+2000-206F; /* Basic Latin + General Punctuation */
+}
+@font-face {
+  font-family: 'MapleMonoAscii';
+  src: url('/fonts/MapleMono/MapleMono-Bold.woff2') format('woff2'),
+       url('https://cdn.jsdelivr.net/gh/subframe7536/maple-font/MapleMono/MapleMono-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+2000-206F;
+}
+
+:root{
+  --stack-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji";
+  --stack-latin-mono: "MapleMonoAscii", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+/* 让英文/数字优先匹配 MapleMonoAscii；中文等不在该字体的字符自动回退到无衬线栈 */
+html, body, * { font-family: var(--stack-latin-mono), var(--stack-sans); }
+
+/* 可选：更平滑的字重渲染 */
+html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+```
