@@ -356,8 +356,11 @@ function ItemBlock({ item, idx, isLast }) {
           <p key={`cn-${i}`} className="text-[16px] leading-7 text-neutral-900 dark:text-neutral-100">{s}</p>
         ))}
         {Array.isArray(item.factsEN) && item.factsEN.map((s, i) => (
-          <p key={`en-${i}`} className="text-[14px] leading-7 italic font-serif text-neutral-700 dark:text-neutral-300">{s}</p>
-        ))}
+  <p key={`en-${i}`} className="text-[14px] leading-7 text-neutral-700 dark:text-neutral-300">
+    {s}
+  </p>
+))}
+
       </div>
 
       {item.keyInfo && <KeyInfoRow info={item.keyInfo} />}
