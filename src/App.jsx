@@ -65,6 +65,18 @@ function useTheme() {
   return { theme, setTheme };
 }
 
+// System-follow only (no manual switch)
+function useSystemThemeOnly() {
+  useEffect(() => {
+    try { localStorage.removeItem(THEME_KEY); } catch {}
+    applyTheme('system');
+    const mql = window.matchMedia('(prefers-color-scheme: dark)');
+    const onChange = () => applyTheme('system');
+    mql.addEventListener('change', onChange);
+    return () => mql.removeEventListener('change', onChange);
+  }, []);
+}
+
 // Admin gate: show controls only if key matches (?key=...) or debug
 function useAdmin() {
   const [isAdmin, setIsAdmin] = useState(() => {
@@ -109,7 +121,7 @@ export default function MondayWeekly() {
   const { route, params, go } = useHashRouter();
   const [showImporter, setShowImporter] = useState(false);
   const isAdmin = useAdmin();
-  const { theme, setTheme } = useTheme();
+  useSystemThemeOnly();
 
   // Load remote content from /content/index.json if present, then merge with local
   useEffect(() => {
@@ -146,7 +158,7 @@ export default function MondayWeekly() {
 
   return (
     <div className="min-h-screen bg-white text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100">
-      <Header onImport={() => setShowImporter(true)} data={data} setData={setData} isAdmin={isAdmin} theme={theme} onThemeChange={setTheme} />
+      <Header onImport={() => setShowImporter(true)} data={data} setData={setData} isAdmin={isAdmin} />
 
       <main className="mx-auto w-full max-w-5xl px-4 sm:px-6 lg:px-8">
         {route === "issue" && currentIssue ? (
@@ -182,7 +194,20 @@ export default function MondayWeekly() {
 }
 
 // --- Header -----------------------------------------------------------------
-function Header({ onImport, data, setData, isAdmin, theme, onThemeChange }) {
+function Header({ onImport, data, setData, isAdmin }) {
+  const handleShare = async () => {
+    try {
+      const url = window.location.href;
+      const title = document.title || 'Monday Weekly';
+      const text = 'Verified, cross-sourced tech/IT weekly';
+      if (navigator.share) {
+        await navigator.share({ title, text, url });
+      } else {
+        await navigator.clipboard.writeText(url);
+        alert('Link copied to clipboard');
+      }
+    } catch (_) {}
+  };
   return (
     <header className="sticky top-0 z-40 border-b border-neutral-200 bg-white/80 backdrop-blur dark:border-neutral-800 dark:bg-neutral-900/80">
       <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
@@ -190,16 +215,15 @@ function Header({ onImport, data, setData, isAdmin, theme, onThemeChange }) {
           <Logo />
         </div>
         <div className="flex items-center gap-2">
-          <ThemeSwitch theme={theme} onChange={onThemeChange} />
+          <button
+            onClick={handleShare}
+            className="inline-flex items-center gap-2 rounded-full border border-neutral-300 px-3 py-1.5 text-sm hover:bg-neutral-50 dark:border-neutral-600 dark:hover:bg-neutral-800"
+            title="Share"
+          >
+            <Share2 className="h-4 w-4" /> Share
+          </button>
           {isAdmin && (
             <>
-              <button
-                onClick={() => copy(window.location.href)}
-                className="inline-flex items-center gap-2 rounded-full border border-neutral-300 px-3 py-1.5 text-sm hover:bg-neutral-50 dark:border-neutral-600 dark:hover:bg-neutral-800"
-                title="Copy page link"
-              >
-                <Share2 className="h-4 w-4" /> Share
-              </button>
               <button
                 onClick={onImport}
                 className="inline-flex items-center gap-2 rounded-full border border-neutral-300 px-3 py-1.5 text-sm hover:bg-neutral-50 dark:border-neutral-600 dark:hover:bg-neutral-800"
@@ -229,33 +253,6 @@ function Logo() {
       {/* 品牌名保持无衬线，可按需加粗 */}
       <div className="text-xl font-sans tracking-tight group-hover:opacity-80">Monday Weekly</div>
     </a>
-  );
-}
-
-// --- Theme Switch (nav pill) -------------------------------------------------
-function ThemeSwitch({ theme, onChange }) {
-  const item = (key, Icon) => (
-    <button
-      key={key}
-      aria-pressed={theme === key}
-      onClick={() => onChange(key)}
-      className={classNames(
-        "h-8 w-8 rounded-full grid place-items-center text-neutral-500 hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-white",
-        theme === key ? "ring-2 ring-neutral-300 dark:ring-white/60 text-neutral-900 dark:text-white bg-white/10" : ""
-      )}
-      title={key}
-    >
-      <Icon className="h-4 w-4" />
-    </button>
-  );
-  return (
-    <div className="rounded-full border border-neutral-300 bg-white/70 p-1 backdrop-blur shadow-sm dark:border-neutral-600 dark:bg-neutral-800/70">
-      <div className="flex items-center gap-1">
-        {item('system', Monitor)}
-        {item('light', Sun)}
-        {item('dark', Moon)}
-      </div>
-    </div>
   );
 }
 
@@ -342,7 +339,7 @@ function IssuePage({ issue, onBack }) {
       <header className="mx-auto max-w-3xl">
         {/* H1 无衬线 + 粗体 */}
         <h1 className="mb-3 font-sans font-bold text-3xl leading-tight sm:text-4xl">{issue.title || `${fmtDate(issue.start)} — ${fmtDate(issue.end)} Weekly`}</h1>
-        <div className="mb-6 flex flex-wrap items-center gap-4 text-sm text-neutral-500 dark:text-neutral-400">
+        <div className="mb-6 flex flex-wrap items-center gap-3 text-sm text-neutral-500 dark:text-neutral-400">
           <span className="inline-flex items-center gap-1"><Calendar className="h-4 w-4" /> {fmtDate(issue.start)} — {fmtDate(issue.end)}</span>
           {issue.publishedAt && <span className="inline-flex items-center gap-1"><Clock className="h-4 w-4" /> {fmtDateTime(issue.publishedAt)}</span>}
         </div>
@@ -388,7 +385,7 @@ function ItemBlock({ item, idx, isLast }) {
       </h2>
 
       {/* Facts */}
-      <div className="space-y-4 sm:space-y-5">
+      <div className="space-y-2">
         {Array.isArray(item.factsCN) && item.factsCN.map((s, i) => (
           <p key={`cn-${i}`} className="text-[16px] leading-7 text-neutral-900 dark:text-neutral-100">{s}</p>
         ))}
@@ -436,15 +433,15 @@ function ItemBlock({ item, idx, isLast }) {
 
       {/* Why it matters */}
       {(item.whyCN || item.whyEN) && (
-        <div className="rounded-xl bg-neutral-50 p-4 text-[15px] text-neutral-800 dark:bg-neutral-900 dark:text-neutral-200 space-y-3">
+        <div className="rounded-xl bg-neutral-50 p-4 text-[15px] text-neutral-800 dark:bg-neutral-900 dark:text-neutral-200">
           <div className="font-sans font-bold">这为什么重要 / Why it matters</div>
-          {item.whyCN && <p className="mt-0 text-[15px]">{item.whyCN}</p>}
+          {item.whyCN && <p className="mt-1 text-[15px]">{item.whyCN}</p>}
           {item.whyEN && <p className="italic font-serif text-[13px] text-neutral-600 dark:text-neutral-400">{item.whyEN}</p>}
         </div>
       )}
 
       {/* 分割线：上下对称（my-24），且最后一条不显示 */}
-      {!isLast && <hr className="my-48 border-neutral-200 dark:border-neutral-800" />}
+      {!isLast && <hr className="my-24 border-neutral-200 dark:border-neutral-800" />}
     </section>
   );
 }
