@@ -1,100 +1,94 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-<button
-onClick={onImport}
-className="inline-flex items-center gap-2 rounded-full border border-neutral-300 px-3 py-1.5 text-sm hover:bg-neutral-50 dark:border-neutral-600 dark:hover:bg-neutral-800"
-title="Import JSON"
->
-<Upload className="h-4 w-4" /> Import / 导入
-</button>
-<button
-onClick={() => downloadJSON(STORAGE_KEY, data)}
-className="inline-flex items-center gap-2 rounded-full border border-neutral-300 px-3 py-1.5 text-sm hover:bg-neutral-50 dark:border-neutral-600 dark:hover:bg-neutral-800"
-title="Export JSON"
->
-<Download className="h-4 w-4" /> Export
-</button>
-</>
-)}
-</div>
-</div>
-</header>
-);
+const hash = String(hashRaw || "").replace(/^#/, "");
+const parts = hash.split("/").filter(Boolean);
+if (parts[0] === "issue" && parts[1]) return { name: "issue", params: [parts[1]] };
+return { name: "home", params: [] };
 }
 
 
-function Logo() {
-return (
-<a href="#/" className="group inline-flex items-center gap-2">
-<div className="rounded-sm bg-black px-2 py-1 text-xs font-semibold tracking-widest text-white">MON</div>
-{/* 品牌名保持无衬线，可按需加粗 */}
-<div className="text-xl font-sans tracking-tight group-hover:opacity-80">Monday Weekly</div>
-</a>
-);
+function copy(text) {
+if (!navigator?.clipboard) {
+const ta = document.createElement("textarea");
+ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove();
+return;
+}
+navigator.clipboard.writeText(text);
 }
 
 
-// --- Archive Page -----------------------------------------------------------
-function ArchivePage({ issues, q, setQ, openIssue }) {
+function downloadJSON(filenameBase, data) {
+const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+const url = URL.createObjectURL(blob);
+const a = document.createElement("a");
+a.href = url; a.download = `${filenameBase}.json`; a.click();
+setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+
+// --- Minimal test cases (rendered only with ?debug=1) ----------------------
+function TestPanel() {
+const [open, setOpen] = useState(false);
+const enabled = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("debug") === "1";
+if (!enabled) return null;
+
+
+const results = [];
+results.push(test("parseHashFromString home", () => deepEqual(parseHashFromString(""), { name: "home", params: [] })));
+results.push(test("parseHashFromString issue", () => deepEqual(parseHashFromString("#/issue/2025-08-18_2025-08-24"), { name: "issue", params: ["2025-08-18_2025-08-24"] })));
+results.push(test("fmtDate basic", () => typeof fmtDate("2025-08-18") === "string" && fmtDate("2025-08-18").length > 0));
+results.push(test("fmtDateTime basic", () => typeof fmtDateTime("2025-08-25T10:00:00+08:00") === "string"));
+results.push(test("mergeIssues merges unique by id, remote wins", () => {
+const local = [{ id: 'A', start: '2025-01-01' }, { id: 'B', start: '2025-01-02' }];
+const remote = [{ id: 'B', start: '2025-02-02', marker: 'remote' }, { id: 'C', start: '2025-01-03' }];
+const merged = mergeIssues(local, remote);
+const ids = merged.map(x => x.id).sort().join(',');
+const b = merged.find(x => x.id==='B');
+return ids === 'A,B,C' && b.marker === 'remote';
+}));
+
+
+const okCount = results.filter(r => r.ok).length;
+
+
 return (
-<section className="py-8 sm:py-10">
-<div className="mb-6 flex items-center justify-between">
-{/* H1 无衬线 + 粗体（3rem 仅用于 Issue 页面，归档页继续常规） */}
-<h1 className="text-2xl font-sans font-bold sm:text-3xl">Archive / 存档</h1>
-<div className="relative">
-<Search className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-neutral-400" />
-<input
-value={q}
-onChange={e => setQ(e.target.value)}
-placeholder="Search title or facts…"
-className="w-64 rounded-full border border-neutral-300 bg-white py-2 pl-8 pr-3 text-sm outline-none ring-0 placeholder:text-neutral-400 focus:border-neutral-400 dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-100 dark:placeholder:text-neutral-500"
-/>
-</div>
-</div>
-
-
-<div className="grid gap-6 sm:grid-cols-2">
-{issues.map(issue => (
-<IssueCard key={issue.id} issue={issue} onClick={() => openIssue(issue.id)} />
+<div className="fixed bottom-4 right-4 z-50 w-72 rounded-2xl border border-neutral-300 bg-white p-3 shadow-lg dark:border-neutral-700 dark:bg-neutral-900">
+<button onClick={() => setOpen(v => !v)} className="mb-2 w-full rounded-lg bg-black px-3 py-1.5 text-sm text-white">
+Tests ({okCount}/{results.length}) {open ? "▲" : "▼"}
+</button>
+{open && (
+<ul className="space-y-1 text-xs">
+{results.map((r, i) => (
+<li key={i} className={r.ok ? "text-green-700" : "text-red-700"}>
+{r.ok ? "✓" : "✗"} {r.name} {r.ok ? "" : `— ${r.msg}`}
+</li>
 ))}
-{issues.length === 0 && (
-<div className="rounded-2xl border border-dashed border-neutral-300 p-10 text-center text-neutral-500 dark:border-neutral-700 dark:text-neutral-400">
-No issues match your search.
-</div>
+</ul>
 )}
+<div className="mt-2 text-[10px] text-neutral-500 dark:text-neutral-400">Add <code>?debug=1</code> to the URL to see tests.</div>
 </div>
-</section>
 );
 }
 
 
-function IssueCard({ issue, onClick }) {
-const firstImage = issue.items?.find(i => i.image?.src)?.image?.src;
-return (
-<article
-onClick={onClick}
-className="group cursor-pointer overflow-hidden rounded-2xl border border-neutral-200 bg-white transition hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900"
->
-<div className="aspect-[16/9] w-full bg-neutral-100 dark:bg-neutral-800">
-{firstImage ? (
-<img src={firstImage} alt="cover" className="h-full w-full object-cover transition group-hover:scale-[1.01]" />
-) : (
-<div className="flex h-full w-full items-center justify-center text-neutral-400">No cover</div>
-)}
-</div>
-<div className="space-y-2 p-5">
-{/* 期标题无衬线 + 粗体 */}
-<h3 className="line-clamp-2 font-sans font-bold text-lg leading-snug sm:text-xl">{issue.title || `${fmtDate(issue.start)} — ${fmtDate(issue.end)}`}</h3>
-<div className="flex items-center gap-3 text-xs text-neutral-500 dark:text-neutral-400">
-<span className="inline-flex items-center gap-1"><Calendar className="h-3.5 w-3.5" /> {fmtDate(issue.start)} — {fmtDate(issue.end)}</span>
-{issue.publishedAt && (
-<span className="inline-flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> {fmtDateTime(issue.publishedAt)}</span>
-)}
-</div>
-{(issue.summaryCN || issue.summaryEN) && (
-<p className="line-clamp-2 text-[15px] text-neutral-700 dark:text-neutral-300">
-<span>{issue.summaryCN || ""}</span>
-{issue.summaryEN && (
-<>
-<span className="mx-2 text-neutral-400">/</span>
-<span className="italic font-serif text-[13px] text-neutral-600 dark:text-neutral-400">{issue.summaryEN}</span>
+function test(name, fn) {
+try {
+const r = fn();
+return { name, ok: !!r, msg: r ? "" : "returned falsy" };
+} catch (e) {
+return { name, ok: false, msg: e?.message || String(e) };
+}
+}
+
+
+function deepEqual(a, b) {
+return JSON.stringify(a) === JSON.stringify(b);
+}
+
+
+// Merge helper is exported for tests
+function mergeIssues(localIssues = [], remoteIssues = []) {
+const map = new Map();
+for (const i of localIssues) if (i?.id) map.set(i.id, i);
+for (const i of remoteIssues) if (i?.id) map.set(i.id, i); // remote overwrites local on collision
+return Array.from(map.values());
 }
