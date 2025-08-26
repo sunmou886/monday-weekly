@@ -285,7 +285,7 @@ function IssueCard({ issue, onClick }) {
             {issue.summaryEN && (
               <>
                 <span className="mx-2 text-neutral-400">/</span>
-                <span className="italic font-serif text-[13px] text-neutral-600 dark:text-neutral-400">{issue.summaryEN}</span>
+                <span className="text-[13px] text-neutral-600 dark:text-neutral-400"> {issue.summaryEN} </span>
               </>
             )}
           </p>
