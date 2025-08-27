@@ -2,40 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Maple Mono 仅覆盖 ASCII（英文/数字/常用标点）；其余文字回退到无衬线栈 */
-@font-face {
-  font-family: 'MapleMonoAscii';
-  src: url('/fonts/MapleMono/MapleMono-Regular.woff2') format('woff2'),
-       /* 可选 CDN 兜底：本地文件缺失时仍可加载 */
-       url('https://cdn.jsdelivr.net/gh/subframe7536/maple-font/MapleMono/MapleMono-Regular.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-  unicode-range: U+0000-00FF, U+2000-206F; /* Basic Latin + General Punctuation */
-}
-@font-face {
-  font-family: 'MapleMonoAscii';
-  src: url('/fonts/MapleMono/MapleMono-Bold.woff2') format('woff2'),
-       url('https://cdn.jsdelivr.net/gh/subframe7536/maple-font/MapleMono/MapleMono-Bold.woff2') format('woff2');
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-  unicode-range: U+0000-00FF, U+2000-206F;
-}
-
-/* 字体栈：先匹配 MapleMonoAscii（只对 ASCII 生效），中文等自动回退到无衬线 */
-:root{
-  --stack-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans",
-               "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Apple Color Emoji",
-               "Segoe UI Emoji", "Noto Color Emoji";
-  --stack-latin-mono: "MapleMonoAscii", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-}
-
-/* 全局应用：英文/数字优先命中 MapleMonoAscii；中文等走无衬线 */
-html, body, * { font-family: var(--stack-latin-mono), var(--stack-sans); }
-
-/* 渲染更顺滑（可选） */
-html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
 
 /* Maple Mono 仅用于 ASCII（英文/数字/常用标点）；其余文字回退到无衬线栈 */
 @font-face {
