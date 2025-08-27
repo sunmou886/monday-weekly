@@ -7,10 +7,10 @@ import {
 /**
  * Monday Weekly — Medium-style archive & post page (single-file React app)
  * - Archive + issue reader (hash routing)
- * - Bilingual facts (CN first, EN second)
+ * - 正文（每条新闻）保持中英双语；其余 UI 文案改为**中文单语**
  * - EN/ASCII font handled globally via CSS (Maple Mono). No italic/serif here.
  * - System theme only (no manual toggle)
- * - Share button in header; Import/Export behind admin key
+ * - Header 右侧为可用“分享”按钮；导入/导出仅管理员可见
  */
 
 const STORAGE_KEY = "monday.weekly.data.v1";
@@ -186,18 +186,18 @@ export default function MondayWeekly() {
   );
 }
 
-// Header with Share button
+// Header with Share button (中文)
 function Header({ onImport, data, setData, isAdmin }) {
   const handleShare = async () => {
     try {
       const url = window.location.href;
       const title = document.title || "Monday Weekly";
-      const text = "Verified, cross-sourced tech/IT weekly";
+      const text = "精选且可核验的科技/IT 周报";
       if (navigator.share) {
         await navigator.share({ title, text, url });
       } else {
         await navigator.clipboard.writeText(url);
-        alert("Link copied to clipboard");
+        alert("链接已复制到剪贴板");
       }
     } catch {}
   };
@@ -211,25 +211,25 @@ function Header({ onImport, data, setData, isAdmin }) {
           <button
             onClick={handleShare}
             className="inline-flex items-center gap-2 rounded-full border border-neutral-300 px-3 py-1.5 text-sm hover:bg-neutral-50 dark:border-neutral-600 dark:hover:bg-neutral-800"
-            title="Share"
+            title="分享"
           >
-            <Share2 className="h-4 w-4" /> Share
+            <Share2 className="h-4 w-4" /> 分享
           </button>
           {isAdmin && (
             <>
               <button
                 onClick={onImport}
                 className="inline-flex items-center gap-2 rounded-full border border-neutral-300 px-3 py-1.5 text-sm hover:bg-neutral-50 dark:border-neutral-600 dark:hover:bg-neutral-800"
-                title="Import JSON"
+                title="导入 JSON"
               >
-                <Upload className="h-4 w-4" /> Import / 导入
+                <Upload className="h-4 w-4" /> 导入
               </button>
               <button
                 onClick={() => downloadJSON(STORAGE_KEY, data)}
                 className="inline-flex items-center gap-2 rounded-full border border-neutral-300 px-3 py-1.5 text-sm hover:bg-neutral-50 dark:border-neutral-600 dark:hover:bg-neutral-800"
-                title="Export JSON"
+                title="导出 JSON"
               >
-                <Download className="h-4 w-4" /> Export
+                <Download className="h-4 w-4" /> 导出
               </button>
             </>
           )}
@@ -248,18 +248,18 @@ function Logo() {
   );
 }
 
-// Archive
+// Archive（中文 UI）
 function ArchivePage({ issues, q, setQ, openIssue }) {
   return (
     <section className="py-8 sm:py-10">
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-sans font-bold sm:text-3xl">Archive / 存档</h1>
+        <h1 className="text-2xl font-sans font-bold sm:text-3xl">存档</h1>
         <div className="relative">
           <Search className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-neutral-400" />
           <input
             value={q}
             onChange={e => setQ(e.target.value)}
-            placeholder="Search title or facts…"
+            placeholder="搜索标题或事实…"
             className="w-64 rounded-full border border-neutral-300 bg-white py-2 pl-8 pr-3 text-sm outline-none ring-0 placeholder:text-neutral-400 focus:border-neutral-400 dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-100 dark:placeholder:text-neutral-500"
           />
         </div>
@@ -271,7 +271,7 @@ function ArchivePage({ issues, q, setQ, openIssue }) {
         ))}
         {issues.length === 0 && (
           <div className="rounded-2xl border border-dashed border-neutral-300 p-10 text-center text-neutral-500 dark:border-neutral-700 dark:text-neutral-400">
-            No issues match your search.
+            没有匹配的周报。
           </div>
         )}
       </div>
@@ -290,7 +290,7 @@ function IssueCard({ issue, onClick }) {
         {firstImage ? (
           <img src={firstImage} alt="cover" className="h-full w-full object-cover transition group-hover:scale-[1.01]" />
         ) : (
-          <div className="flex h-full w-full items-center justify-center text-neutral-400">No cover</div>
+          <div className="flex h-full w-full items-center justify-center text-neutral-400">暂无封面</div>
         )}
       </div>
       <div className="space-y-2 p-5">
@@ -303,24 +303,18 @@ function IssueCard({ issue, onClick }) {
             <span className="inline-flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> {fmtMonthDay(issue.publishedAt)}</span>
           )}
         </div>
-        {(issue.summaryCN || issue.summaryEN) && (
+        {issue.summaryCN && (
           <p className="line-clamp-2 text-[15px] text-neutral-700 dark:text-neutral-300">
-            <span>{issue.summaryCN || ""}</span>
-            {issue.summaryEN && (
-              <>
-                <span className="mx-2 text-neutral-400">/</span>
-                <span className="text-[13px] text-neutral-600 dark:text-neutral-400">{issue.summaryEN}</span>
-              </>
-            )}
+            <span>{issue.summaryCN}</span>
           </p>
         )}
-        <div className="pt-2 text-sm text-neutral-500 dark:text-neutral-400">{issue.items?.length || 0} items</div>
+        <div className="pt-2 text-sm text-neutral-500 dark:text-neutral-400">{issue.items?.length || 0} 条</div>
       </div>
     </article>
   );
 }
 
-// Issue page
+// Issue page（中文 UI；正文保持双语）
 function IssuePage({ issue, onBack }) {
   return (
     <article className="py-8 sm:py-10">
@@ -328,7 +322,7 @@ function IssuePage({ issue, onBack }) {
         onClick={onBack}
         className="mb-6 inline-flex items-center gap-1.5 text-sm text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-100"
       >
-        <ChevronLeft className="h-4 w-4" /> Back / 返回
+        <ChevronLeft className="h-4 w-4" /> 返回
       </button>
 
       <header className="mx-auto max-w-3xl">
@@ -340,15 +334,9 @@ function IssuePage({ issue, onBack }) {
           <span className="inline-flex items-center gap-1"><Calendar className="h-4 w-4" /> {fmtMonthDay(issue.start)} — {fmtMonthDay(issue.end)}</span>
           {issue.publishedAt && <span className="inline-flex items-center gap-1"><Clock className="h-4 w-4" /> {fmtMonthDay(issue.publishedAt)}</span>}
         </div>
-        {(issue.summaryCN || issue.summaryEN) && (
+        {issue.summaryCN && (
           <p className="mb-8 text-[17px] leading-7 text-neutral-800 dark:text-neutral-200">
-            <span>{issue.summaryCN || ""}</span>
-            {issue.summaryEN && (
-              <>
-                <span className="mx-2 text-neutral-400">/</span>
-                <span className="text-[15px] text-neutral-600 dark:text-neutral-400">{issue.summaryEN}</span>
-              </>
-            )}
+            <span>{issue.summaryCN}</span>
           </p>
         )}
       </header>
@@ -358,7 +346,7 @@ function IssuePage({ issue, onBack }) {
           <ItemBlock key={idx} item={item} idx={idx + 1} isLast={idx === issue.items.length - 1} />
         )) : (
           <div className="my-24 rounded-2xl border border-dashed border-neutral-300 p-8 text-center text-neutral-500 dark:border-neutral-700 dark:text-neutral-400">
-            No items yet. Use "Import / 导入" to add content for this week.
+            暂无条目。使用「导入」添加本周内容。
           </div>
         )}
       </div>
@@ -369,7 +357,7 @@ function IssuePage({ issue, onBack }) {
 function ItemBlock({ item, idx, isLast }) {
   return (
     <section className="space-y-5 sm:space-y-6 py-2">
-      {/* Item title: 1.8rem */}
+      {/* Item title: 1.8rem（正文标题允许中英双语） */}
       <h2 className="font-sans font-bold leading-snug text-[1.8rem]">
         <span className="mr-2 text-neutral-400">{String(idx).padStart(2, "0")}</span>
         {item.title}
@@ -416,7 +404,7 @@ function ItemBlock({ item, idx, isLast }) {
               rel="noreferrer"
               className="inline-flex items-center gap-1 rounded-full border border-neutral-300 px-3 py-1 text-xs hover:bg-neutral-50 dark:border-neutral-600 dark:hover:bg-neutral-800"
             >
-              <LinkIcon className="h-3.5 w-3.5" /> {l.label || "Link"}
+              <LinkIcon className="h-3.5 w-3.5" /> {l.label || "链接"}
             </a>
           ))}
         </div>
@@ -424,7 +412,7 @@ function ItemBlock({ item, idx, isLast }) {
 
       {(item.whyCN || item.whyEN) && (
         <div className="rounded-xl bg-neutral-50 p-4 text-[15px] text-neutral-800 dark:bg-neutral-900 dark:text-neutral-200">
-          <div className="font-sans font-bold">这为什么重要 / Why it matters</div>
+          <div className="font-sans font-bold">这为什么重要</div>
           {item.whyCN && <p className="mt-1 text-[15px]">{item.whyCN}</p>}
           {item.whyEN && <p className="text-[13px] text-neutral-600 dark:text-neutral-400">{item.whyEN}</p>}
         </div>
@@ -459,7 +447,7 @@ function Badge({ icon, label }) {
   );
 }
 
-// Importer
+// Importer（中文 UI）
 function Importer({ close, onImport }) {
   const [text, setText] = useState("");
   const [error, setError] = useState("");
@@ -479,15 +467,15 @@ function Importer({ close, onImport }) {
     setError("");
     try {
       const payload = JSON.parse(text);
-      if (!payload || !Array.isArray(payload.issues)) throw new Error("Missing issues array");
+      if (!payload || !Array.isArray(payload.issues)) throw new Error("缺少 issues 数组");
       for (const issue of payload.issues) {
-        if (!issue.id) throw new Error("Each issue requires an id (YYYY-MM-DD_YYYY-MM-DD)");
+        if (!issue.id) throw new Error("每个 issue 需要 id (YYYY-MM-DD_YYYY-MM-DD)");
       }
       onImport(payload);
       close();
     } catch (e) {
       const hasBackslash = /\\[^"\\/bfnrtu]/.test(text);
-      const hint = hasBackslash ? " Hint: check backslashes (use \\ or valid \\uXXXX escapes)." : "";
+      const hint = hasBackslash ? " 提示：检查反斜杠（使用 \\ 或合法的 \\uXXXX 转义）。" : "";
       setError(e.message + hint);
     }
   };
@@ -496,17 +484,10 @@ function Importer({ close, onImport }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
       <div ref={dialogRef} className="w-full max-w-3xl rounded-2xl bg-white p-6 shadow-xl dark:bg-neutral-900">
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-lg font-sans font-bold">Import JSON / 导入周报数据</h3>
-          <button
-            onClick={close}
-            className="rounded-full border border-neutral-300 px-2 py-1 text-xs hover:bg-neutral-50 dark:border-neutral-600 dark:hover:bg-neutral-800"
-          >
-            Close
-          </button>
+          <h3 className="text-lg font-sans font-bold">导入周报数据（JSON）</h3>
+          <button onClick={close} className="rounded-full border border-neutral-300 px-2 py-1 text-xs hover:bg-neutral-50 dark:border-neutral-600 dark:hover:bg-neutral-800">关闭</button>
         </div>
-        <p className="mb-3 text-sm text-neutral-600 dark:text-neutral-400">
-          Paste a JSON payload following the schema in the source code comment. Existing issues with the same id will be replaced.
-        </p>
+        <p className="mb-3 text-sm text-neutral-600 dark:text-neutral-400">粘贴符合数据结构的 JSON；相同 id 的周报会被替换。</p>
         <textarea
           value={text}
           onChange={e => setText(e.target.value)}
@@ -515,33 +496,21 @@ function Importer({ close, onImport }) {
         />
         {error && <div className="mt-2 text-sm text-red-600 dark:text-red-400">{error}</div>}
         <div className="mt-4 flex justify-end gap-2">
-          <button
-            onClick={close}
-            className="rounded-full border border-neutral-300 px-3 py-1.5 text-sm hover:bg-neutral-50 dark:border-neutral-600 dark:hover:bg-neutral-800"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleImport}
-            className="rounded-full bg-black px-3 py-1.5 text-sm text-white hover:bg-neutral-800"
-          >
-            Import
-          </button>
+          <button onClick={close} className="rounded-full border border-neutral-300 px-3 py-1.5 text-sm hover:bg-neutral-50 dark:border-neutral-600 dark:hover:bg-neutral-800">取消</button>
+          <button onClick={handleImport} className="rounded-full bg-black px-3 py-1.5 text-sm text-white hover:bg-neutral-800">导入</button>
         </div>
       </div>
     </div>
   );
 }
 
-// Footer
+// Footer（中文）
 function Footer() {
   return (
     <footer className="border-t border-neutral-200 py-8 dark:border-neutral-800">
       <div className="mx-auto flex w-full max-w-5xl flex-col items-start justify-between gap-4 px-4 sm:flex-row sm:items-center sm:px-6 lg:px-8">
-        <div className="text-sm text-neutral-500 dark:text-neutral-400">© {new Date().getFullYear()} Monday. Medium-inspired UI.</div>
-        <div className="text-xs text-neutral-500 dark:text-neutral-400">
-          Content: bilingual; each sentence verified with official + reputable media sources. Images from official / reputable outlets only.
-        </div>
+        <div className="text-sm text-neutral-500 dark:text-neutral-400">© {new Date().getFullYear()} Monday。Medium 风格界面。</div>
+        <div className="text-xs text-neutral-500 dark:text-neutral-400">内容：双语；每句话均以官方与权威媒体交叉核验。图片来自官方/权威来源。</div>
       </div>
     </footer>
   );
@@ -634,7 +603,7 @@ function TestPanel() {
         </ul>
       )}
       <div className="mt-2 text-[10px] text-neutral-500 dark:text-neutral-400">
-        Add <code>?debug=1</code> to the URL to see tests.
+        在网址后追加 <code>?debug=1</code> 可查看测试结果。
       </div>
     </div>
   );
