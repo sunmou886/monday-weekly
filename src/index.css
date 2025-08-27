@@ -1,36 +1,76 @@
+/* --- Tailwind runtime --------------------------------------------------- */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-
-/* Maple Mono 仅用于 ASCII（英文/数字/常用标点）；其余文字回退到无衬线栈 */
+/* --- Fonts: Maple Mono (ASCII only) ------------------------------------ */
+/* 仅覆盖 ASCII（英文/数字/常用标点），其它文字自动回退到无衬线栈 */
 @font-face {
-font-family: 'MapleMonoAscii';
-src: url('/fonts/MapleMono/MapleMono-Regular.woff2') format('woff2'),
-url('https://cdn.jsdelivr.net/gh/subframe7536/maple-font/MapleMono/MapleMono-Regular.woff2') format('woff2');
-font-weight: 400;
-font-style: normal;
-font-display: swap;
-unicode-range: U+0000-00FF, U+2000-206F; /* Basic Latin + General Punctuation */
+  font-family: "MapleMonoAscii";
+  src:
+    url("/fonts/MapleMono/MapleMono-Regular.woff2") format("woff2"),
+    url("https://cdn.jsdelivr.net/gh/subframe7536/maple-font/MapleMono/MapleMono-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  /* Basic Latin + General Punctuation + Arrows（可按需精简/扩展） */
+  unicode-range: U+0000-00FF, U+2000-206F, U+2190-21FF;
 }
 @font-face {
-font-family: 'MapleMonoAscii';
-src: url('/fonts/MapleMono/MapleMono-Bold.woff2') format('woff2'),
-url('https://cdn.jsdelivr.net/gh/subframe7536/maple-font/MapleMono/MapleMono-Bold.woff2') format('woff2');
-font-weight: 700;
-font-style: normal;
-font-display: swap;
-unicode-range: U+0000-00FF, U+2000-206F;
+  font-family: "MapleMonoAscii";
+  src:
+    url("/fonts/MapleMono/MapleMono-Bold.woff2") format("woff2"),
+    url("https://cdn.jsdelivr.net/gh/subframe7536/maple-font/MapleMono/MapleMono-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+2000-206F, U+2190-21FF;
 }
 
-
+/* --- Global font stacks ------------------------------------------------- */
 :root{
---stack-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji";
---stack-latin-mono: "MapleMonoAscii", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  --stack-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, "Noto Sans", "PingFang SC", "Hiragino Sans GB",
+    "Microsoft YaHei", "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji";
+  --stack-latin-mono: "MapleMonoAscii", ui-monospace, SFMono-Regular, Menlo,
+    Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+
+  /* 让浏览器按系统深浅色渲染表单/滚动条等 */
+  color-scheme: light dark;
 }
-/* 让英文/数字优先匹配 MapleMonoAscii；中文等不在该字体的字符自动回退到无衬线栈 */
+
+/* 让英文/数字优先走 MapleMono；非 ASCII 自动回退无衬线 */
 html, body, * { font-family: var(--stack-latin-mono), var(--stack-sans); }
 
+/* 字重/抗锯齿优化（跨平台更一致） */
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
 
-/* 可选：更平滑的字重渲染 */
-html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+/* --- Medium-like, small polish ----------------------------------------- */
+/* 链接下划线观感更稳 */
+a { text-underline-offset: 2px; }
+.dark a { text-decoration-color: rgba(255,255,255,.55); }
+
+/* 选中文本高亮（浅/深色） */
+::selection { background: rgba(0,0,0,.12); color: inherit; }
+.dark ::selection { background: rgba(255,255,255,.18); color: inherit; }
+
+/* 媒体元素通用约束 */
+img, svg, video, canvas { max-width: 100%; height: auto; }
+
+/* 分割线配合组件层的 py-12；这里仅兜底颜色 */
+hr { border-color: #e5e7eb; }           /* neutral-200 */
+.dark hr { border-color: #262626; }     /* neutral-800 */
+
+/* 表格/代码块等（如有）的小优化 */
+pre, code, kbd, samp { font-family: var(--stack-latin-mono), monospace; }
+pre { overflow: auto; }
+
+/* 打印兜底（不影响屏幕显示） */
+@media print {
+  .no-print { display: none !important; }
+  body { background: #fff; color: #000; }
+}
