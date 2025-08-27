@@ -20,26 +20,33 @@ import {
  * - EN/ASCII font handled globally via CSS (Maple Mono)
  * - System theme only (no manual toggle)
  * - Header 右侧为“分享”；导入/导出仅管理员可见
- * - 图片：懒加载；抓取失败则不显示（无破图标）
+ * - 图片：优先文章配图；抓不到用 Unsplash；懒加载；失败则隐藏
  */
 
 const STORAGE_KEY = "monday.weekly.data.v1";
 const THEME_KEY = "mw.theme"; // 'system' | 'light' | 'dark'
 
 async function fetchJSON(url) {
-  const res = await fetch(url, { cache: 'no-store' });
+  const res = await fetch(url, { cache: "no-store" });
   if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
   return res.json();
 }
 
-/** Format YYYY-MM-DD → Mon DD, YYYY (may still be used in titles) */
+/** YYYY-MM-DD → "Aug 18" */
+function fmtMonthDay(iso) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  return d.toLocaleDateString("en-SG", { month: "short", day: "2-digit" });
+}
+
+/** YYYY-MM-DD → "Aug 18, 2025"（备用） */
 function fmtDate(iso) {
   if (!iso) return "";
   const d = new Date(iso);
   return d.toLocaleDateString("en-SG", { year: "numeric", month: "short", day: "2-digit" });
 }
 
-/** Full datetime (kept for potential use) */
+/** Full datetime（备用） */
 function fmtDateTime(iso) {
   if (!iso) return "";
   const d = new Date(iso);
@@ -54,21 +61,19 @@ function fmtDateTime(iso) {
   });
 }
 
-/** Month & day only, e.g., "Aug 18" */
-function fmtMonthDay(iso) {
-  if (!iso) return "";
-  const d = new Date(iso);
-  return d.toLocaleDateString("en-SG", { month: "short", day: "2-digit" });
-}
-
 function classNames(...xs) {
   return xs.filter(Boolean).join(" ");
 }
-// ===== Image resolving helpers (prefer article images, avoid logos; fallback Unsplash) =====
+
+/* ===== Image resolving helpers (prefer article images, avoid logos; fallback Unsplash) ===== */
 const IMG_CACHE_KEY = "mw.img.cache.v2";
 
 function domainFromUrl(u) {
-  try { return new URL(u).hostname.replace(/^www\./, ""); } catch { return ""; }
+  try {
+    return new URL(u).hostname.replace(/^www\./, "");
+  } catch {
+    return "";
+  }
 }
 function toAbsoluteUrl(maybe, baseUrl) {
   if (!maybe) return "";
@@ -77,32 +82,46 @@ function toAbsoluteUrl(maybe, baseUrl) {
   try {
     const base = new URL(baseUrl);
     return new URL(maybe, `${base.protocol}//${base.host}`).toString();
-  } catch { return maybe; }
+  } catch {
+    return maybe;
+  }
 }
 function toJinaProxy(url) {
   try {
     const u = new URL(url);
     return `https://r.jina.ai/${u.protocol}//${u.host}${u.pathname}${u.search}`;
-  } catch { return ""; }
+  } catch {
+    return "";
+  }
 }
 function randomUnsplash(w = 1600, h = 900) {
   const sig = Math.floor(Math.random() * 1e9);
   return `https://source.unsplash.com/random/${w}x${h}/?wallpapers&sig=${sig}`;
 }
 function loadImgCache() {
-  try { return JSON.parse(localStorage.getItem(IMG_CACHE_KEY) || "{}"); } catch { return {}; }
+  try {
+    return JSON.parse(localStorage.getItem(IMG_CACHE_KEY) || "{}");
+  } catch {
+    return {};
+  }
 }
 function saveImgCache(map) {
-  try { localStorage.setItem(IMG_CACHE_KEY, JSON.stringify(map)); } catch {}
+  try {
+    localStorage.setItem(IMG_CACHE_KEY, JSON.stringify(map));
+  } catch {}
 }
 
 // filters & scoring to avoid logos/icons
-function isBadExt(u) { return /\.svg(\?|$)/i.test(u) || /\.gif(\?|$)/i.test(u); }
+function isBadExt(u) {
+  return /\.svg(\?|$)/i.test(u) || /\.gif(\?|$)/i.test(u);
+}
 function isLogoish(u) {
   const s = (u || "").toLowerCase();
   return /(logo|favicon|icon|sprite|wordmark|lockup|brandmark|badge|avatar|mark)/.test(s);
 }
-function goodExt(u) { return /\.(jpe?g|png|webp|avif)(\?|$)/i.test(u); }
+function goodExt(u) {
+  return /\.(jpe?g|png|webp|avif)(\?|$)/i.test(u);
+}
 function scoreImage(u) {
   const s = (u || "").toLowerCase();
   let sc = 0;
@@ -124,17 +143,22 @@ async function resolveArticleImage(url) {
   const html = await res.text();
   const abs = (u) => toAbsoluteUrl(u, url);
 
-  const metaRe = /<meta[^>]+(?:property|name)=["'](?:og:image|og:image:secure_url|twitter:image(?::src)?)["'][^>]+content=["']([^"']+)["'][^>]*>/gi;
-  const imgRe  = /<img[^>]+src=["']([^"']+)["'][^>]*>/gi;
+  const metaRe =
+    /<meta[^>]+(?:property|name)=["'](?:og:image|og:image:secure_url|twitter:image(?::src)?)["'][^>]+content=["']([^"']+)["'][^>]*>/gi;
+  const imgRe = /<img[^>]+src=["']([^"']+)["'][^>]*>/gi;
 
   const set = new Set();
-  for (const m of html.matchAll(metaRe)) { if (m[1]) set.add(abs(m[1])); }
-  for (const m of html.matchAll(imgRe))  { if (m[1]) set.add(abs(m[1])); }
+  for (const m of html.matchAll(metaRe)) {
+    if (m[1]) set.add(abs(m[1]));
+  }
+  for (const m of html.matchAll(imgRe)) {
+    if (m[1]) set.add(abs(m[1]));
+  }
 
   const candidates = [...set]
-    .filter(u => !!u)
-    .filter(u => !isBadExt(u))
-    .filter(u => !isLogoish(u));
+    .filter((u) => !!u)
+    .filter((u) => !isBadExt(u))
+    .filter((u) => !isLogoish(u));
 
   if (!candidates.length) return "";
 
@@ -150,7 +174,12 @@ function useResolvedImage(item) {
   const initial = () => {
     const s = item?.image?.src || "";
     if (s && !isLogoish(s) && !isBadExt(s)) {
-      return { src: s, caption: item.image.caption || "", credit: item.image.credit || "", href: item.image.href || s };
+      return {
+        src: s,
+        caption: item.image.caption || "",
+        credit: item.image.credit || "",
+        href: item.image.href || s,
+      };
     }
     return { src: "", caption: "", credit: "", href: firstUrl || "" };
   };
@@ -165,7 +194,7 @@ function useResolvedImage(item) {
         src: randomUnsplash(1200, 800),
         caption: "Unsplash Wallpapers (random)",
         credit: "Unsplash",
-        href: "https://unsplash.com/t/wallpapers"
+        href: "https://unsplash.com/t/wallpapers",
       });
       return;
     }
@@ -183,182 +212,40 @@ function useResolvedImage(item) {
         if (!alive) return;
         if (s) {
           const next = { src: s, caption: domainFromUrl(firstUrl), credit: "OG", href: firstUrl };
-          const nextCache = loadImgCache(); nextCache[firstUrl] = s; saveImgCache(nextCache);
+          const nextCache = loadImgCache();
+          nextCache[firstUrl] = s;
+          saveImgCache(nextCache);
           setImg(next);
           return;
         }
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
 
       if (alive) {
         setImg({
           src: randomUnsplash(1200, 800),
           caption: "Unsplash Wallpapers (random)",
           credit: "Unsplash",
-          href: "https://unsplash.com/t/wallpapers"
+          href: "https://unsplash.com/t/wallpapers",
         });
       }
     })();
 
-    return () => { alive = false; };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    return () => {
+      alive = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [firstUrl, item?.image?.src]);
 
   return img;
 }
-// ===== Image resolving helpers end =====
+/* ===== Image resolving helpers end ===== */
 
-
-// ===== Image resolving helpers (prefer article images, avoid logos; fallback Unsplash) =====
-const IMG_CACHE_KEY = "mw.img.cache.v2";
-
-function domainFromUrl(u) {
-  try { return new URL(u).hostname.replace(/^www\./, ""); } catch { return ""; }
-}
-function toAbsoluteUrl(maybe, baseUrl) {
-  if (!maybe) return "";
-  if (/^https?:\/\//i.test(maybe)) return maybe;
-  if (maybe.startsWith("//")) return "https:" + maybe;
-  try {
-    const base = new URL(baseUrl);
-    return new URL(maybe, `${base.protocol}//${base.host}`).toString();
-  } catch { return maybe; }
-}
-function toJinaProxy(url) {
-  try {
-    const u = new URL(url);
-    return `https://r.jina.ai/${u.protocol}//${u.host}${u.pathname}${u.search}`;
-  } catch { return ""; }
-}
-function randomUnsplash(w = 1600, h = 900) {
-  const sig = Math.floor(Math.random() * 1e9);
-  return `https://source.unsplash.com/random/${w}x${h}/?wallpapers&sig=${sig}`;
-}
-function loadImgCache() {
-  try { return JSON.parse(localStorage.getItem(IMG_CACHE_KEY) || "{}"); } catch { return {}; }
-}
-function saveImgCache(map) {
-  try { localStorage.setItem(IMG_CACHE_KEY, JSON.stringify(map)); } catch {}
-}
-
-// filters & scoring to avoid logos/icons
-function isBadExt(u) { return /\.svg(\?|$)/i.test(u) || /\.gif(\?|$)/i.test(u); }
-function isLogoish(u) {
-  const s = (u || "").toLowerCase();
-  return /(logo|favicon|icon|sprite|wordmark|lockup|brandmark|badge|avatar|mark)/.test(s);
-}
-function goodExt(u) { return /\.(jpe?g|png|webp|avif)(\?|$)/i.test(u); }
-function scoreImage(u) {
-  const s = (u || "").toLowerCase();
-  let sc = 0;
-  if (/(hero|featured|feature|article|banner|news|press|upload|uploads|media|images|photo|screenshot|figure|cover)/.test(s)) sc += 10;
-  if (goodExt(s)) sc += 5;
-  if (/(1200|1600|2048|1080|w=12|w=16|w=20)/.test(s)) sc += 2;
-  if (isLogoish(s)) sc -= 20;
-  if (isBadExt(s)) sc -= 10;
-  return sc;
-}
-
-// parse article page for og/twitter images, then <img> tags, score & pick
-async function resolveArticleImage(url) {
-  const proxy = toJinaProxy(url);
-  if (!proxy) return "";
-  const res = await fetch(proxy, { cache: "no-store" });
-  if (!res.ok) return "";
-
-  const html = await res.text();
-  const abs = (u) => toAbsoluteUrl(u, url);
-
-  const metaRe = /<meta[^>]+(?:property|name)=["'](?:og:image|og:image:secure_url|twitter:image(?::src)?)["'][^>]+content=["']([^"']+)["'][^>]*>/gi;
-  const imgRe  = /<img[^>]+src=["']([^"']+)["'][^>]*>/gi;
-
-  const set = new Set();
-  for (const m of html.matchAll(metaRe)) { if (m[1]) set.add(abs(m[1])); }
-  for (const m of html.matchAll(imgRe))  { if (m[1]) set.add(abs(m[1])); }
-
-  const candidates = [...set]
-    .filter(u => !!u)
-    .filter(u => !isBadExt(u))
-    .filter(u => !isLogoish(u));
-
-  if (!candidates.length) return "";
-
-  candidates.sort((a, b) => scoreImage(b) - scoreImage(a));
-  if (scoreImage(candidates[0]) < 1) return "";
-  return candidates[0];
-}
-
-// final resolver per item: explicit non-logo -> article image -> Unsplash
-function useResolvedImage(item) {
-  const firstUrl = Array.isArray(item?.links) && item.links.length ? item.links[0].url : "";
-
-  const initial = () => {
-    const s = item?.image?.src || "";
-    if (s && !isLogoish(s) && !isBadExt(s)) {
-      return { src: s, caption: item.image.caption || "", credit: item.image.credit || "", href: item.image.href || s };
-    }
-    return { src: "", caption: "", credit: "", href: firstUrl || "" };
-  };
-
-  const [img, setImg] = React.useState(initial);
-
-  React.useEffect(() => {
-    if (img.src) return;
-
-    if (!firstUrl) {
-      setImg({
-        src: randomUnsplash(1200, 800),
-        caption: "Unsplash Wallpapers (random)",
-        credit: "Unsplash",
-        href: "https://unsplash.com/t/wallpapers"
-      });
-      return;
-    }
-
-    const cache = loadImgCache();
-    if (cache[firstUrl]) {
-      setImg({ src: cache[firstUrl], caption: domainFromUrl(firstUrl), credit: "OG", href: firstUrl });
-      return;
-    }
-
-    let alive = true;
-    (async () => {
-      try {
-        const s = await resolveArticleImage(firstUrl);
-        if (!alive) return;
-        if (s) {
-          const next = { src: s, caption: domainFromUrl(firstUrl), credit: "OG", href: firstUrl };
-          const nextCache = loadImgCache(); nextCache[firstUrl] = s; saveImgCache(nextCache);
-          setImg(next);
-          return;
-        }
-      } catch { /* ignore */ }
-
-      if (alive) {
-        setImg({
-          src: randomUnsplash(1200, 800),
-          caption: "Unsplash Wallpapers (random)",
-          credit: "Unsplash",
-          href: "https://unsplash.com/t/wallpapers"
-        });
-      }
-    })();
-
-    return () => { alive = false; };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [firstUrl, item?.image?.src]);
-
-  return img;
-}
-// ===== Image resolving helpers end =====
-
-
-// Theme helpers --------------------------------------------------------------
-
-// Theme (system only)
+/* ================= Theme helpers (system only) ================= */
 function applyTheme(theme) {
   const root = document.documentElement;
-  const preferDark =
-    window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+  const preferDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
   const isDark = theme === "dark" || (theme === "system" && preferDark);
   root.classList.toggle("dark", !!isDark);
 }
@@ -375,7 +262,7 @@ function useSystemThemeOnly() {
   }, []);
 }
 
-// Admin gate via ?key=... (matches VITE_ADMIN_KEY) or ?admin=1 when no env key
+/* ================= Admin gate ================= */
 function useAdmin() {
   const [isAdmin, setIsAdmin] = useState(() => {
     try {
@@ -402,7 +289,7 @@ function useAdmin() {
   return isAdmin;
 }
 
-// Bootstrap content
+/* ================= Bootstrap content ================= */
 const bootstrapData = {
   issues: [
     {
@@ -426,62 +313,53 @@ export default function MondayWeekly() {
   const isAdmin = useAdmin();
   useSystemThemeOnly();
 
-  // Merge remote /content/index.json if present
   // Load remote content:
-// 1) If /content/index.json has {issues:[...]}, merge directly (old mode).
-// 2) If it has {files:[...]}, fetch each /content/<file>.json and merge (weekly files).
-useEffect(() => {
-  (async () => {
-    try {
-      const idx = await fetchJSON('/content/index.json');
-
-      // 模式 A：聚合
-      if (idx && Array.isArray(idx.issues)) {
-        setData(prev => ({ issues: mergeIssues(prev?.issues || [], idx.issues) }));
-        return;
-      }
-
-      // 模式 B：清单
-      if (idx && Array.isArray(idx.files) && idx.files.length) {
-        const urls = idx.files.map(name => `/content/${name}`);
-        const payloads = await Promise.all(
-          urls.map(u => fetchJSON(u).catch(() => null))
-        );
-        const mergedIssues = [];
-        for (const p of payloads) {
-          if (p && Array.isArray(p.issues)) mergedIssues.push(...p.issues);
+  // A) /content/index.json has {issues:[...]} → merge directly
+  // B) /content/index.json has {files:[...]} → fetch each /content/<file>.json and merge
+  useEffect(() => {
+    (async () => {
+      try {
+        const idx = await fetchJSON("/content/index.json");
+        if (idx && Array.isArray(idx.issues)) {
+          setData((prev) => ({ issues: mergeIssues(prev?.issues || [], idx.issues) }));
+          return;
         }
-        if (mergedIssues.length) {
-          setData(prev => ({ issues: mergeIssues(prev?.issues || [], mergedIssues) }));
+        if (idx && Array.isArray(idx.files) && idx.files.length) {
+          const urls = idx.files.map((name) => `/content/${name}`);
+          const payloads = await Promise.all(urls.map((u) => fetchJSON(u).catch(() => null)));
+          const mergedIssues = [];
+          for (const p of payloads) {
+            if (p && Array.isArray(p.issues)) mergedIssues.push(...p.issues);
+          }
+          if (mergedIssues.length) {
+            setData((prev) => ({ issues: mergeIssues(prev?.issues || [], mergedIssues) }));
+          }
         }
+      } catch {
+        // no index.json or parse failed — ignore
       }
-    } catch {
-      // 没有 index.json 或解析失败，忽略
-    }
-  })();
-}, []);
+    })();
+  }, [setData]);
 
-// 追加：当用户直接访问 #/issue/<id> 且本地还没该周数据时，按需加载 /content/<id>.json
-useEffect(() => {
-  if (route !== 'issue') return;
-  const id = params?.[0];
-  if (!id) return;
+  // Lazy load single week when landing on #/issue/<id> and it's missing locally
+  useEffect(() => {
+    if (route !== "issue") return;
+    const id = params?.[0];
+    if (!id) return;
+    const exists = (data?.issues || []).some((i) => i.id === id);
+    if (exists) return;
 
-  // 已经有这条就不用再拉
-  const exists = (data?.issues || []).some(i => i.id === id);
-  if (exists) return;
-
-  (async () => {
-    try {
-      const payload = await fetchJSON(`/content/${id}.json`);
-      if (payload?.issues?.length) {
-        setData(prev => ({ issues: mergeIssues(prev?.issues || [], payload.issues) }));
+    (async () => {
+      try {
+        const payload = await fetchJSON(`/content/${id}.json`);
+        if (payload?.issues?.length) {
+          setData((prev) => ({ issues: mergeIssues(prev?.issues || [], payload.issues) }));
+        }
+      } catch {
+        // not found — ignore
       }
-    } catch {
-      // 单周文件不存在/解析失败，静默忽略即可
-    }
-  })();
-}, [route, params, data, setData]);
+    })();
+  }, [route, params, data, setData]);
 
   const issuesSorted = useMemo(
     () => [...(data?.issues || [])].sort((a, b) => new Date(b.start) - new Date(a.start)),
@@ -510,12 +388,7 @@ useEffect(() => {
 
   return (
     <div className="min-h-screen bg-white text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100">
-      <Header
-        onImport={() => setShowImporter(true)}
-        data={data}
-        setData={setData}
-        isAdmin={isAdmin}
-      />
+      <Header onImport={() => setShowImporter(true)} data={data} setData={setData} isAdmin={isAdmin} />
 
       <main className="mx-auto w-full max-w-5xl px-4 sm:px-6 lg:px-8">
         {route === "issue" && currentIssue ? (
@@ -545,7 +418,7 @@ useEffect(() => {
   );
 }
 
-// Header with Share button (中文)
+/* ================= Header ================= */
 function Header({ onImport, data, setData, isAdmin }) {
   const handleShare = async () => {
     try {
@@ -601,15 +474,13 @@ function Header({ onImport, data, setData, isAdmin }) {
 function Logo() {
   return (
     <a href="#/" className="group inline-flex items-center gap-2">
-      <div className="rounded-sm bg-black px-2 py-1 text-xs font-semibold tracking-widest text-white">
-        MON
-      </div>
+      <div className="rounded-sm bg-black px-2 py-1 text-xs font-semibold tracking-widest text-white">MON</div>
       <div className="text-xl font-sans tracking-tight group-hover:opacity-80">Monday Weekly</div>
     </a>
   );
 }
 
-// Archive（中文 UI）
+/* ================= Archive ================= */
 function ArchivePage({ issues, q, setQ, openIssue }) {
   return (
     <section className="py-8 sm:py-10">
@@ -640,7 +511,6 @@ function ArchivePage({ issues, q, setQ, openIssue }) {
   );
 }
 
-// ===== BEGIN: REPLACE IssueCard =====
 function IssueCard({ issue, onClick }) {
   // 取第一条 item 来解析封面（简化请求量）
   const firstItem = issue.items?.[0] || {};
@@ -674,11 +544,11 @@ function IssueCard({ issue, onClick }) {
       </div>
       <div className="space-y-2 p-5">
         <h3 className="line-clamp-2 font-sans font-bold text-lg leading-snug sm:text-xl">
-          {issue.title || `${fmtDate(issue.start)} — ${fmtDate(issue.end)}`}
+          {issue.title || `${fmtMonthDay(issue.start)} — ${fmtMonthDay(issue.end)}`}
         </h3>
         <div className="flex items-center gap-3 text-xs text-neutral-500 dark:text-neutral-400">
           <span className="inline-flex items-center gap-1">
-            <Calendar className="h-3.5 w-3.5" /> {fmtDate(issue.start)} — {fmtDate(issue.end)}
+            <Calendar className="h-3.5 w-3.5" /> {fmtMonthDay(issue.start)} — {fmtMonthDay(issue.end)}
           </span>
         </div>
         {(issue.summaryCN || issue.summaryEN) && (
@@ -698,43 +568,7 @@ function IssueCard({ issue, onClick }) {
   );
 }
 
-// ===== END: REPLACE IssueCard =====
-
-
-// 封面图：懒加载 + 失败回退到占位；不显示破图标
-function CardCover({ src }) {
-  const [ok, setOk] = useState(!!src);
-  const [loaded, setLoaded] = useState(false);
-  useEffect(() => {
-    setOk(!!src);
-    setLoaded(false);
-  }, [src]);
-
-  if (!src || !ok) {
-    return (
-      <div className="flex h-full w-full items-center justify-center text-neutral-400">
-        暂无封面
-      </div>
-    );
-  }
-  return (
-    <img
-      src={src}
-      alt="cover"
-      loading="lazy"
-      decoding="async"
-      referrerPolicy="no-referrer"
-      onLoad={() => setLoaded(true)}
-      onError={() => setOk(false)}
-      className={classNames(
-        "h-full w-full object-cover transition group-hover:scale-[1.01]",
-        loaded ? "block" : "hidden"
-      )}
-    />
-  );
-}
-
-// Issue page（中文 UI；正文保持双语）
+/* ================= Issue Page ================= */
 function IssuePage({ issue, onBack }) {
   return (
     <article className="py-8 sm:py-10">
@@ -748,7 +582,7 @@ function IssuePage({ issue, onBack }) {
       <header className="mx-auto max-w-3xl">
         {/* Weekly main title: 3rem */}
         <h1 className="mb-3 font-sans font-bold leading-tight text-[3rem]">
-          {issue.title || `${fmtDate(issue.start)} — ${fmtDate(issue.end)} Weekly`}
+          {issue.title || `${fmtMonthDay(issue.start)} — ${fmtMonthDay(issue.end)} Weekly`}
         </h1>
         <div className="mb-6 flex flex-wrap items-center gap-3 text-sm text-neutral-500 dark:text-neutral-400">
           <span className="inline-flex items-center gap-1">
@@ -777,15 +611,15 @@ function IssuePage({ issue, onBack }) {
   );
 }
 
-// ===== BEGIN: FIXED ItemBlock =====
+/* ================= Item Block ================= */
 function ItemBlock({ item, idx, isLast }) {
-  // resolve image: item.image -> og:image of first link -> Unsplash
+  // resolve image: item.image -> article og image -> Unsplash
   const img = useResolvedImage(item);
 
   return (
     <section className="space-y-5 sm:space-y-6 py-2">
-      {/* Title */}
-      <h2 className="font-sans font-bold text-2xl leading-snug">
+      {/* Title: 1.8rem */}
+      <h2 className="font-sans font-bold text-[1.8rem] leading-snug">
         <span className="mr-2 text-neutral-400">{String(idx).padStart(2, "0")}</span>
         {item.title}
       </h2>
@@ -883,55 +717,6 @@ function ItemBlock({ item, idx, isLast }) {
     </section>
   );
 }
-// ===== END: FIXED ItemBlock =====
-
-
-// 正文图片：懒加载；加载前隐藏；失败则整体不渲染
-function ItemImage({ image }) {
-  const src = image?.src;
-  const href = image?.href || src;
-  const [ok, setOk] = useState(!!src);
-  const [loaded, setLoaded] = useState(false);
-
-  useEffect(() => {
-    setOk(!!src);
-    setLoaded(false);
-  }, [src]);
-
-  if (!src || !ok) return null;
-
-  return (
-    <figure className="overflow-hidden rounded-2xl border border-neutral-200 dark:border-neutral-800">
-      <a href={href} target="_blank" rel="noreferrer">
-        <img
-          src={src}
-          alt={image?.alt || "image"}
-          loading="lazy"
-          decoding="async"
-          referrerPolicy="no-referrer"
-          onLoad={() => setLoaded(true)}
-          onError={() => setOk(false)}
-          className={loaded ? "w-full object-cover" : "hidden"}
-        />
-      </a>
-      {loaded && (image?.caption || image?.credit) && (
-        <figcaption className="flex items-center justify-between gap-3 bg-neutral-50 px-4 py-2 text-xs text-neutral-600 dark:bg-neutral-900 dark:text-neutral-400">
-          <span className="truncate">{image.caption}</span>
-          {href && (
-            <a
-              className="shrink-0 items-center gap-1 text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200"
-              href={href}
-              target="_blank"
-              rel="noreferrer"
-            >
-              {image.credit} <ExternalLink className="ml-1 inline h-3.5 w-3.5" />
-            </a>
-          )}
-        </figcaption>
-      )}
-    </figure>
-  );
-}
 
 function KeyInfoRow({ info }) {
   return (
@@ -952,7 +737,7 @@ function Badge({ icon, label }) {
   );
 }
 
-// Importer（中文 UI）
+/* ================= Importer ================= */
 function Importer({ close, onImport }) {
   const [text, setText] = useState("");
   const [error, setError] = useState("");
@@ -999,9 +784,7 @@ function Importer({ close, onImport }) {
             关闭
           </button>
         </div>
-        <p className="mb-3 text-sm text-neutral-600 dark:text-neutral-400">
-          粘贴符合数据结构的 JSON；相同 id 的周报会被替换。
-        </p>
+        <p className="mb-3 text-sm text-neutral-600 dark:text-neutral-400">粘贴符合数据结构的 JSON；相同 id 的周报会被替换。</p>
         <textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
@@ -1010,16 +793,10 @@ function Importer({ close, onImport }) {
         />
         {error && <div className="mt-2 text-sm text-red-600 dark:text-red-400">{error}</div>}
         <div className="mt-4 flex justify-end gap-2">
-          <button
-            onClick={close}
-            className="rounded-full border border-neutral-300 px-3 py-1.5 text-sm hover:bg-neutral-50 dark:border-neutral-600 dark:hover:bg-neutral-800"
-          >
+          <button onClick={close} className="rounded-full border border-neutral-300 px-3 py-1.5 text-sm hover:bg-neutral-50 dark:border-neutral-600 dark:hover:bg-neutral-800">
             取消
           </button>
-          <button
-            onClick={handleImport}
-            className="rounded-full bg-black px-3 py-1.5 text-sm text-white hover:bg-neutral-800"
-          >
+          <button onClick={handleImport} className="rounded-full bg-black px-3 py-1.5 text-sm text-white hover:bg-neutral-800">
             导入
           </button>
         </div>
@@ -1028,23 +805,19 @@ function Importer({ close, onImport }) {
   );
 }
 
-// Footer（中文）
+/* ================= Footer ================= */
 function Footer() {
   return (
     <footer className="border-t border-neutral-200 py-8 dark:border-neutral-800">
       <div className="mx-auto flex w-full max-w-5xl flex-col items-start justify-between gap-4 px-4 sm:flex-row sm:items-center sm:px-6 lg:px-8">
-        <div className="text-sm text-neutral-500 dark:text-neutral-400">
-          © {new Date().getFullYear()} Monday
-        </div>
-        <div className="text-xs text-neutral-500 dark:text-neutral-400">
-          一周热点，周一见
-        </div>
+        <div className="text-sm text-neutral-500 dark:text-neutral-400">© {new Date().getFullYear()} Monday</div>
+        <div className="text-xs text-neutral-500 dark:text-neutral-400">一周热点，周一见</div>
       </div>
     </footer>
   );
 }
 
-// Hooks & helpers
+/* ================= Hooks & helpers ================= */
 function useLocalData(initial) {
   const [state, setState] = useState(() => {
     try {
@@ -1106,43 +879,25 @@ function downloadJSON(filenameBase, data) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-// Tests (opt-in via ?debug=1)
+/* ================= Tests (opt-in via ?debug=1) ================= */
 function TestPanel() {
   const [open, setOpen] = useState(false);
-  const enabled =
-    typeof window !== "undefined" &&
-    new URLSearchParams(window.location.search).get("debug") === "1";
+  const enabled = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("debug") === "1";
   if (!enabled) return null;
 
   const results = [];
-  results.push(
-    test("parseHashFromString home", () => deepEqual(parseHashFromString(""), { name: "home", params: [] }))
-  );
+  results.push(test("parseHashFromString home", () => deepEqual(parseHashFromString(""), { name: "home", params: [] })));
   results.push(
     test("parseHashFromString issue", () =>
-      deepEqual(parseHashFromString("#/issue/2025-08-18_2025-08-24"), {
-        name: "issue",
-        params: ["2025-08-18_2025-08-24"],
-      })
+      deepEqual(parseHashFromString("#/issue/2025-08-18_2025-08-24"), { name: "issue", params: ["2025-08-18_2025-08-24"] })
     )
   );
-  results.push(
-    test(
-      "fmtDate basic",
-      () => typeof fmtDate("2025-08-18") === "string" && fmtDate("2025-08-18").length > 0
-    )
-  );
+  results.push(test("fmtDate basic", () => typeof fmtDate("2025-08-18") === "string" && fmtDate("2025-08-18").length > 0));
   results.push(test("fmtDateTime basic", () => typeof fmtDateTime("2025-08-25T10:00:00+08:00") === "string"));
   results.push(
     test("mergeIssues merges unique by id, remote wins", () => {
-      const local = [
-        { id: "A", start: "2025-01-01" },
-        { id: "B", start: "2025-01-02" },
-      ];
-      const remote = [
-        { id: "B", start: "2025-02-02", marker: "remote" },
-        { id: "C", start: "2025-01-03" },
-      ];
+      const local = [{ id: "A", start: "2025-01-01" }, { id: "B", start: "2025-01-02" }];
+      const remote = [{ id: "B", start: "2025-02-02", marker: "remote" }, { id: "C", start: "2025-01-03" }];
       const merged = mergeIssues(local, remote);
       const ids = merged.map((x) => x.id).sort().join(",");
       const b = merged.find((x) => x.id === "B");
