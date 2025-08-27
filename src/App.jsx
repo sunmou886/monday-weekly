@@ -17,35 +17,35 @@ import {
  * Monday Weekly — Medium-style archive & post page (single-file React app)
  * - Archive + issue reader (hash routing)
  * - 正文（每条新闻）保持中英双语；其余 UI 文案为中文
- * - EN/ASCII font handled globally via CSS (Maple Mono)
- * - System theme only (no manual toggle)
- * - Header 右侧为“分享”；导入/导出仅管理员可见
- * - 图片：优先文章配图；抓不到用 Unsplash；懒加载；失败则隐藏
+ * - EN/ASCII 字体在全局 CSS 用 Maple Mono 处理
+ * - 仅跟随系统明暗色（无手动切换）
+ * - Header 右侧“分享”；导入/导出仅管理员可见（?key=...）
+ * - 图片：先占位（Unsplash），后台解析文章配图；无法获取则按链路回退；懒加载；失败隐藏
  */
 
 const STORAGE_KEY = "monday.weekly.data.v1";
 const THEME_KEY = "mw.theme"; // 'system' | 'light' | 'dark'
 
+// -------------------- Fetch helpers --------------------
 async function fetchJSON(url) {
   const res = await fetch(url, { cache: "no-store" });
   if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
   return res.json();
 }
 
+// -------------------- Date helpers --------------------
 /** YYYY-MM-DD → "Aug 18" */
 function fmtMonthDay(iso) {
   if (!iso) return "";
   const d = new Date(iso);
   return d.toLocaleDateString("en-SG", { month: "short", day: "2-digit" });
 }
-
 /** YYYY-MM-DD → "Aug 18, 2025"（备用） */
 function fmtDate(iso) {
   if (!iso) return "";
   const d = new Date(iso);
   return d.toLocaleDateString("en-SG", { year: "numeric", month: "short", day: "2-digit" });
 }
-
 /** Full datetime（备用） */
 function fmtDateTime(iso) {
   if (!iso) return "";
@@ -65,7 +65,7 @@ function classNames(...xs) {
   return xs.filter(Boolean).join(" ");
 }
 
-/* ===== Image resolving helpers (prefer article images, avoid logos; fallback Unsplash) ===== */
+// -------------------- Image helpers (single, v2) --------------------
 const IMG_CACHE_KEY = "mw.img.cache.v2";
 
 function domainFromUrl(u) {
@@ -94,10 +94,30 @@ function toJinaProxy(url) {
     return "";
   }
 }
-function randomUnsplash(w = 1600, h = 900) {
-  const sig = Math.floor(Math.random() * 1e9);
+// 占位 & 回退链：Unsplash → Picsum → 灰色 SVG
+function randomUnsplash(w = 1600, h = 900, sig = Math.floor(Math.random() * 1e9)) {
   return `https://source.unsplash.com/random/${w}x${h}/?wallpapers&sig=${sig}`;
 }
+function placeholderChain(w = 1600, h = 900) {
+  const sig = Math.floor(Math.random() * 1e9);
+  return [
+    randomUnsplash(w, h, sig),
+    `https://picsum.photos/seed/${sig}/${w}/${h}`,
+    `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='${w}' height='${h}'%3E%3Crect width='100%25' height='100%25' fill='%23f3f4f6'/%3E%3C/svg%3E`,
+  ];
+}
+function setNextFallback(imgEl, w = 1200, h = 800) {
+  const i = parseInt(imgEl.dataset.fidx || "0", 10);
+  const list = placeholderChain(w, h);
+  if (i < list.length) {
+    imgEl.src = list[i];
+    imgEl.dataset.fidx = String(i + 1);
+    return true;
+  }
+  imgEl.style.display = "none";
+  return false;
+}
+
 function loadImgCache() {
   try {
     return JSON.parse(localStorage.getItem(IMG_CACHE_KEY) || "{}");
@@ -111,7 +131,7 @@ function saveImgCache(map) {
   } catch {}
 }
 
-// filters & scoring to avoid logos/icons
+// 过滤 & 评分：尽量避开 logo/icon
 function isBadExt(u) {
   return /\.svg(\?|$)/i.test(u) || /\.gif(\?|$)/i.test(u);
 }
@@ -133,7 +153,7 @@ function scoreImage(u) {
   return sc;
 }
 
-// parse article page for og/twitter images, then <img> tags, score & pick
+// 抓取文章页的 og/twitter image + <img>，打分挑最佳
 async function resolveArticleImage(url) {
   const proxy = toJinaProxy(url);
   if (!proxy) return "";
@@ -148,65 +168,50 @@ async function resolveArticleImage(url) {
   const imgRe = /<img[^>]+src=["']([^"']+)["'][^>]*>/gi;
 
   const set = new Set();
-  for (const m of html.matchAll(metaRe)) {
-    if (m[1]) set.add(abs(m[1]));
-  }
-  for (const m of html.matchAll(imgRe)) {
-    if (m[1]) set.add(abs(m[1]));
-  }
+  for (const m of html.matchAll(metaRe)) if (m[1]) set.add(abs(m[1]));
+  for (const m of html.matchAll(imgRe)) if (m[1]) set.add(abs(m[1]));
 
-  const candidates = [...set]
-    .filter((u) => !!u)
-    .filter((u) => !isBadExt(u))
-    .filter((u) => !isLogoish(u));
-
+  const candidates = [...set].filter(Boolean).filter((u) => !isBadExt(u)).filter((u) => !isLogoish(u));
   if (!candidates.length) return "";
-
   candidates.sort((a, b) => scoreImage(b) - scoreImage(a));
   if (scoreImage(candidates[0]) < 1) return "";
   return candidates[0];
 }
 
-// final resolver per item: explicit non-logo -> article image -> Unsplash
+// 每条 item：显式图（非 logo）→ 文章图 → 占位回退链
 function useResolvedImage(item) {
   const firstUrl = Array.isArray(item?.links) && item.links.length ? item.links[0].url : "";
 
   const initial = () => {
     const s = item?.image?.src || "";
     if (s && !isLogoish(s) && !isBadExt(s)) {
-      return {
-        src: s,
-        caption: item.image.caption || "",
-        credit: item.image.credit || "",
-        href: item.image.href || s,
-      };
+      return { src: s, caption: item.image.caption || "", credit: item.image.credit || "", href: item.image.href || s };
     }
-    return { src: "", caption: "", credit: "", href: firstUrl || "" };
+    // 先用占位，后台解析文章图
+    return {
+      src: randomUnsplash(1200, 800),
+      caption: "Unsplash Wallpapers (random)",
+      credit: "Unsplash",
+      href: "https://unsplash.com/t/wallpapers",
+    };
   };
 
   const [img, setImg] = React.useState(initial);
 
   React.useEffect(() => {
-    if (img.src) return;
-
-    if (!firstUrl) {
-      setImg({
-        src: randomUnsplash(1200, 800),
-        caption: "Unsplash Wallpapers (random)",
-        credit: "Unsplash",
-        href: "https://unsplash.com/t/wallpapers",
-      });
-      return;
-    }
+    // 如果显式提供了非 logo 图片，就不再尝试抓取
+    const explicit = item?.image?.src;
+    if (explicit && !isLogoish(explicit) && !isBadExt(explicit)) return;
 
     const cache = loadImgCache();
-    if (cache[firstUrl]) {
-      setImg({ src: cache[firstUrl], caption: domainFromUrl(firstUrl), credit: "OG", href: firstUrl });
-      return;
-    }
-
     let alive = true;
+
     (async () => {
+      if (!firstUrl) return; // 没有链接就维持占位
+      if (cache[firstUrl]) {
+        if (alive) setImg({ src: cache[firstUrl], caption: domainFromUrl(firstUrl), credit: "OG", href: firstUrl });
+        return;
+      }
       try {
         const s = await resolveArticleImage(firstUrl);
         if (!alive) return;
@@ -216,19 +221,9 @@ function useResolvedImage(item) {
           nextCache[firstUrl] = s;
           saveImgCache(nextCache);
           setImg(next);
-          return;
         }
       } catch {
-        /* ignore */
-      }
-
-      if (alive) {
-        setImg({
-          src: randomUnsplash(1200, 800),
-          caption: "Unsplash Wallpapers (random)",
-          credit: "Unsplash",
-          href: "https://unsplash.com/t/wallpapers",
-        });
+        // 失败就保留占位
       }
     })();
 
@@ -240,9 +235,8 @@ function useResolvedImage(item) {
 
   return img;
 }
-/* ===== Image resolving helpers end ===== */
 
-/* ================= Theme helpers (system only) ================= */
+// -------------------- Theme (system only) --------------------
 function applyTheme(theme) {
   const root = document.documentElement;
   const preferDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
@@ -262,7 +256,7 @@ function useSystemThemeOnly() {
   }, []);
 }
 
-/* ================= Admin gate ================= */
+// -------------------- Admin gate --------------------
 function useAdmin() {
   const [isAdmin, setIsAdmin] = useState(() => {
     try {
@@ -289,7 +283,7 @@ function useAdmin() {
   return isAdmin;
 }
 
-/* ================= Bootstrap content ================= */
+// -------------------- Bootstrap --------------------
 const bootstrapData = {
   issues: [
     {
@@ -305,6 +299,7 @@ const bootstrapData = {
   ],
 };
 
+// -------------------- Root --------------------
 export default function MondayWeekly() {
   const [data, setData] = useLocalData(bootstrapData);
   const [q, setQ] = useState("");
@@ -313,9 +308,8 @@ export default function MondayWeekly() {
   const isAdmin = useAdmin();
   useSystemThemeOnly();
 
-  // Load remote content:
-  // A) /content/index.json has {issues:[...]} → merge directly
-  // B) /content/index.json has {files:[...]} → fetch each /content/<file>.json and merge
+  // A) /content/index.json 含 {issues:[...]} 直接合并
+  // B) /content/index.json 含 {files:[...]} 逐个拉取 /content/<file>.json 合并
   useEffect(() => {
     (async () => {
       try {
@@ -328,20 +322,18 @@ export default function MondayWeekly() {
           const urls = idx.files.map((name) => `/content/${name}`);
           const payloads = await Promise.all(urls.map((u) => fetchJSON(u).catch(() => null)));
           const mergedIssues = [];
-          for (const p of payloads) {
-            if (p && Array.isArray(p.issues)) mergedIssues.push(...p.issues);
-          }
+          for (const p of payloads) if (p && Array.isArray(p.issues)) mergedIssues.push(...p.issues);
           if (mergedIssues.length) {
             setData((prev) => ({ issues: mergeIssues(prev?.issues || [], mergedIssues) }));
           }
         }
       } catch {
-        // no index.json or parse failed — ignore
+        // 无 index.json 或解析失败，忽略
       }
     })();
   }, [setData]);
 
-  // Lazy load single week when landing on #/issue/<id> and it's missing locally
+  // 直接打开单周路由时按需懒加载 /content/<id>.json
   useEffect(() => {
     if (route !== "issue") return;
     const id = params?.[0];
@@ -356,7 +348,7 @@ export default function MondayWeekly() {
           setData((prev) => ({ issues: mergeIssues(prev?.issues || [], payload.issues) }));
         }
       } catch {
-        // not found — ignore
+        // 无此文件，忽略
       }
     })();
   }, [route, params, data, setData]);
@@ -418,7 +410,7 @@ export default function MondayWeekly() {
   );
 }
 
-/* ================= Header ================= */
+// -------------------- Header --------------------
 function Header({ onImport, data, setData, isAdmin }) {
   const handleShare = async () => {
     try {
@@ -480,7 +472,7 @@ function Logo() {
   );
 }
 
-/* ================= Archive ================= */
+// -------------------- Archive --------------------
 function ArchivePage({ issues, q, setQ, openIssue }) {
   return (
     <section className="py-8 sm:py-10">
@@ -512,7 +504,6 @@ function ArchivePage({ issues, q, setQ, openIssue }) {
 }
 
 function IssueCard({ issue, onClick }) {
-  // 取第一条 item 来解析封面（简化请求量）
   const firstItem = issue.items?.[0] || {};
   const coverObj = useResolvedImage(firstItem);
   const cover = coverObj.src || randomUnsplash(1280, 720);
@@ -528,14 +519,7 @@ function IssueCard({ issue, onClick }) {
             src={cover}
             alt="cover"
             loading="lazy"
-            onError={(e) => {
-              if (!e.currentTarget.dataset.fallback) {
-                e.currentTarget.dataset.fallback = "1";
-                e.currentTarget.src = randomUnsplash(1280, 720);
-              } else {
-                e.currentTarget.style.display = "none";
-              }
-            }}
+            onError={(e) => setNextFallback(e.currentTarget, 1280, 720)}
             className="h-full w-full object-cover transition group-hover:scale-[1.01]"
           />
         ) : (
@@ -568,7 +552,7 @@ function IssueCard({ issue, onClick }) {
   );
 }
 
-/* ================= Issue Page ================= */
+// -------------------- Issue Page --------------------
 function IssuePage({ issue, onBack }) {
   return (
     <article className="py-8 sm:py-10">
@@ -580,7 +564,7 @@ function IssuePage({ issue, onBack }) {
       </button>
 
       <header className="mx-auto max-w-3xl">
-        {/* Weekly main title: 3rem */}
+        {/* 主标题 3rem */}
         <h1 className="mb-3 font-sans font-bold leading-tight text-[3rem]">
           {issue.title || `${fmtMonthDay(issue.start)} — ${fmtMonthDay(issue.end)} Weekly`}
         </h1>
@@ -611,14 +595,13 @@ function IssuePage({ issue, onBack }) {
   );
 }
 
-/* ================= Item Block ================= */
+// -------------------- Item Block --------------------
 function ItemBlock({ item, idx, isLast }) {
-  // resolve image: item.image -> article og image -> Unsplash
   const img = useResolvedImage(item);
 
   return (
     <section className="space-y-5 sm:space-y-6 py-2">
-      {/* Title: 1.8rem */}
+      {/* 条目标题 1.8rem */}
       <h2 className="font-sans font-bold text-[1.8rem] leading-snug">
         <span className="mr-2 text-neutral-400">{String(idx).padStart(2, "0")}</span>
         {item.title}
@@ -643,7 +626,7 @@ function ItemBlock({ item, idx, isLast }) {
       {/* Key info */}
       {item.keyInfo && <KeyInfoRow info={item.keyInfo} />}
 
-      {/* Image: contain, max height 380; lazy; onError -> Unsplash once then hide */}
+      {/* Image：等比、不裁剪、max-h 380；懒加载；失败按链路回退 */}
       {img.src && (
         <figure className="overflow-hidden rounded-2xl border border-neutral-200 bg-neutral-100 dark:border-neutral-800 dark:bg-neutral-800">
           <a href={img.href || img.src} target="_blank" rel="noreferrer" className="block">
@@ -652,14 +635,7 @@ function ItemBlock({ item, idx, isLast }) {
                 src={img.src}
                 alt={item.image?.alt || "image"}
                 loading="lazy"
-                onError={(e) => {
-                  if (!e.currentTarget.dataset.fallback) {
-                    e.currentTarget.dataset.fallback = "1";
-                    e.currentTarget.src = randomUnsplash(1200, 800);
-                  } else {
-                    e.currentTarget.style.display = "none";
-                  }
-                }}
+                onError={(e) => setNextFallback(e.currentTarget, 1200, 800)}
                 className="max-h-[380px] max-w-full w-auto h-auto object-contain"
               />
             </div>
@@ -737,7 +713,7 @@ function Badge({ icon, label }) {
   );
 }
 
-/* ================= Importer ================= */
+// -------------------- Importer --------------------
 function Importer({ close, onImport }) {
   const [text, setText] = useState("");
   const [error, setError] = useState("");
@@ -805,7 +781,7 @@ function Importer({ close, onImport }) {
   );
 }
 
-/* ================= Footer ================= */
+// -------------------- Footer --------------------
 function Footer() {
   return (
     <footer className="border-t border-neutral-200 py-8 dark:border-neutral-800">
@@ -817,7 +793,7 @@ function Footer() {
   );
 }
 
-/* ================= Hooks & helpers ================= */
+// -------------------- Hooks & misc helpers --------------------
 function useLocalData(initial) {
   const [state, setState] = useState(() => {
     try {
@@ -879,7 +855,7 @@ function downloadJSON(filenameBase, data) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-/* ================= Tests (opt-in via ?debug=1) ================= */
+// -------------------- Tests (opt-in via ?debug=1) --------------------
 function TestPanel() {
   const [open, setOpen] = useState(false);
   const enabled = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("debug") === "1";
