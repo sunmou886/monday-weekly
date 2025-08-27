@@ -104,4 +104,16 @@
             "timeSGT": "2025-08-14",
             "actor": "Zoom",
             "market": "Windows 客户端",
-            "impact": "CVE-2025-494
+            "impact": "CVE-2025-49457"
+          },
+          "links": [
+            { "url": "https://explore.zoom.us/en/trust/security-bulletin/", "label": "Zoom 安全公告（官方）" },
+            { "url": "https://www.bleepingcomputer.com/", "label": "BleepingComputer 报道" }
+          ],
+          "whyCN": "广泛部署的桌面客户端权限风险，需尽快更新。",
+          "whyEN": "Widely deployed Windows client EoP—urgent patching recommended."
+        }
+      ]
+    }
+  ]
+}
