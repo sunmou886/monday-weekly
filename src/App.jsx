@@ -572,12 +572,13 @@ function ItemBlock({ item, idx, isLast }) {
         <figure className="overflow-hidden rounded-2xl border border-neutral-200 dark:border-neutral-800">
           <a href={img.href || img.src} target="_blank" rel="noreferrer">
             <img
-              src={img.src}
-              alt={item.image?.alt || "image"}
-              loading="lazy"
-              onError={(e) => { e.currentTarget.style.display = "none"; }}
-              className="w-full object-cover"
-            />
+  src={img.src}
+  alt={item.image?.alt || "image"}
+  loading="lazy"
+  onError={(e) => { e.currentTarget.style.display = "none"; }}
+  className="h-[380px] w-full object-cover"
+/>
+
           </a>
           {(img.caption || img.credit) && (
             <figcaption className="flex items-center justify-between gap-3 bg-neutral-50 px-4 py-2 text-xs text-neutral-600 dark:bg-neutral-900 dark:text-neutral-400">
