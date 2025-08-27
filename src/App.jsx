@@ -64,7 +64,159 @@ function fmtMonthDay(iso) {
 function classNames(...xs) {
   return xs.filter(Boolean).join(" ");
 }
-// ===== Image resolving helpers (OG first, then Unsplash) =====
+// ===== Image resolving helpers (prefer article images, avoid logos; fallback Unsplash) =====
+const IMG_CACHE_KEY = "mw.img.cache.v2";
+
+function domainFromUrl(u) {
+  try { return new URL(u).hostname.replace(/^www\./, ""); } catch { return ""; }
+}
+function toAbsoluteUrl(maybe, baseUrl) {
+  if (!maybe) return "";
+  if (/^https?:\/\//i.test(maybe)) return maybe;
+  if (maybe.startsWith("//")) return "https:" + maybe;
+  try {
+    const base = new URL(baseUrl);
+    return new URL(maybe, `${base.protocol}//${base.host}`).toString();
+  } catch { return maybe; }
+}
+function toJinaProxy(url) {
+  try {
+    const u = new URL(url);
+    return `https://r.jina.ai/${u.protocol}//${u.host}${u.pathname}${u.search}`;
+  } catch { return ""; }
+}
+function randomUnsplash(w = 1600, h = 900) {
+  const sig = Math.floor(Math.random() * 1e9);
+  return `https://source.unsplash.com/random/${w}x${h}/?wallpapers&sig=${sig}`;
+}
+function loadImgCache() {
+  try { return JSON.parse(localStorage.getItem(IMG_CACHE_KEY) || "{}"); } catch { return {}; }
+}
+function saveImgCache(map) {
+  try { localStorage.setItem(IMG_CACHE_KEY, JSON.stringify(map)); } catch {}
+}
+
+// 判定：尽量过滤掉 logo/icon 等“标识类”图片
+function isBadExt(u) { return /\.svg(\?|$)/i.test(u) || /\.gif(\?|$)/i.test(u); }
+function isLogoish(u) {
+  const s = u.toLowerCase();
+  return /(logo|favicon|icon|sprite|wordmark|lockup|brandmark|badge|avatar|mark)/.test(s);
+}
+function goodExt(u) { return /\.(jpe?g|png|webp|avif)(\?|$)/i.test(u); }
+function scoreImage(u) {
+  const s = u.toLowerCase();
+  let sc = 0;
+  if (/(hero|featured|feature|article|banner|news|press|upload|uploads|media|images|photo|screenshot|figure|cover)/.test(s)) sc += 10;
+  if (goodExt(s)) sc += 5;
+  if (/(1200|1600|2048|1080|w=12|w=16|w=20)/.test(s)) sc += 2;
+  if (isLogoish(s)) sc -= 20;
+  if (isBadExt(s)) sc -= 10;
+  return sc;
+}
+
+// 解析文章页：优先 og/twitter 元标签，再扫 <img> 标签，按打分选最像“文章配图”的那张
+async function resolveArticleImage(url) {
+  const proxy = toJinaProxy(url);
+  if (!proxy) return "";
+  const res = await fetch(proxy, { cache: "no-store" });
+  if (!res.ok) return "";
+
+  const html = await res.text();
+  const abs = (u) => toAbsoluteUrl(u, url);
+
+  const metaRe = /<meta[^>]+(?:property|name)=["'](?:og:image|og:image:secure_url|twitter:image(?::src)?)["'][^>]+content=["']([^"']+)["'][^>]*>/gi;
+  const imgRe  = /<img[^>]+src=["']([^"']+)["'][^>]*>/gi;
+
+  const set = new Set();
+
+  // 先收集 og/twitter
+  for (const m of html.matchAll(metaRe)) { if (m[1]) set.add(abs(m[1])); }
+  // 再收集页面 <img>
+  for (const m of html.matchAll(imgRe))   { if (m[1]) set.add(abs(m[1])); }
+
+  const candidates = [...set]
+    .filter(u => !!u)
+    .filter(u => !isBadExt(u))         // 过滤 svg/gif
+    .filter(u => !isLogoish(u));       // 过滤明显 logo
+
+  if (!candidates.length) return "";
+
+  candidates.sort((a, b) => scoreImage(b) - scoreImage(a));
+  // 若最高分仍很低（大概率是 logo/图标），直接放弃
+  if (scoreImage(candidates[0]) < 1) return "";
+  return candidates[0];
+}
+
+// 针对一条 item 的最终图片：显式非 logo -> 文章图 -> Unsplash
+function useResolvedImage(item) {
+  const firstUrl = Array.isArray(item?.links) && item.links.length ? item.links[0].url : "";
+
+  // 1) 若 JSON 指定且不像 logo，则直接用
+  const initial = () => {
+    const s = item?.image?.src || "";
+    if (s && !isLogoish(s) && !isBadExt(s)) {
+      return { src: s, caption: item.image.caption || "", credit: item.image.credit || "", href: item.image.href || s };
+    }
+    return { src: "", caption: "", credit: "", href: firstUrl || "" };
+  };
+
+  const [img, setImg] = React.useState(initial);
+
+  React.useEffect(() => {
+    // 已有显式非 logo 图片，跳过解析
+    if (img.src) return;
+
+    // 没有链接：直接用 Unsplash
+    if (!firstUrl) {
+      setImg({
+        src: randomUnsplash(1200, 800),
+        caption: "Unsplash Wallpapers (random)",
+        credit: "Unsplash",
+        href: "https://unsplash.com/t/wallpapers"
+      });
+      return;
+    }
+
+    // 缓存命中
+    const cache = loadImgCache();
+    if (cache[firstUrl]) {
+      setImg({ src: cache[firstUrl], caption: domainFromUrl(firstUrl), credit: "OG", href: firstUrl });
+      return;
+    }
+
+    let alive = true;
+    (async () => {
+      try {
+        // 2) 解析文章页配图
+        const s = await resolveArticleImage(firstUrl);
+        if (!alive) return;
+        if (s) {
+          const next = { src: s, caption: domainFromUrl(firstUrl), credit: "OG", href: firstUrl };
+          const nextCache = loadImgCache(); nextCache[firstUrl] = s; saveImgCache(nextCache);
+          setImg(next);
+          return;
+        }
+      } catch { /* ignore */ }
+
+      // 3) 兜底：Unsplash
+      if (alive) {
+        setImg({
+          src: randomUnsplash(1200, 800),
+          caption: "Unsplash Wallpapers (random)",
+          credit: "Unsplash",
+          href: "https://unsplash.com/t/wallpapers"
+        });
+      }
+    })();
+
+    return () => { alive = false; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [firstUrl, item?.image?.src]);
+
+  return img;
+}
+// ===== Image resolving helpers end =====
+
 const IMG_CACHE_KEY = "mw.img.cache.v1";
 
 function domainFromUrl(u) {
