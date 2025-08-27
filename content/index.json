@@ -8,7 +8,100 @@
       "title": "2025-08-18 至 2025-08-24 周报 / Weekly",
       "summaryCN": "本周经严核的科技/IT大事件精选。",
       "summaryEN": "Verified, cross-sourced tech/IT developments for the week.",
-      "items": [ /* 与上面相同的 6 条，出于篇幅此处可直接复制 */ ]
-    }
-  ]
-}
+      "items": [
+        {
+          "title": "苹果修补被利用零日 / Apple patches exploited zero-day",
+          "factsCN": [
+            "苹果发布 iOS/iPadOS 18.6.2、iPadOS 17.7.10 与 macOS 15.6.1/14.7.8/13.7.8，修复 ImageIO 越界写 CVE-2025-43300；苹果称可能在定向攻击中被利用。"
+          ],
+          "factsEN": [
+            "Apple released iOS/iPadOS 18.6.2, iPadOS 17.7.10 and macOS 15.6.1/14.7.8/13.7.8 to fix ImageIO OOB write CVE-2025-43300, which Apple says may have been exploited in targeted attacks."
+          ],
+          "keyInfo": {
+            "timeSGT": "2025-08-20",
+            "actor": "Apple",
+            "market": "iOS/iPadOS/macOS",
+            "impact": "CVE-2025-43300；多版本"
+          },
+          "image": {
+            "src": "https://www.apple.com/ac/structured-data/images/knowledge_graph_logo.png?202310101913",
+            "caption": "Apple 发布安全更新修补 CVE-2025-43300",
+            "credit": "Apple",
+            "href": "https://support.apple.com/en-us/HT201222"
+          },
+          "links": [
+            { "url": "https://support.apple.com/en-us/HT201222", "label": "Apple 支持：安全更新" },
+            { "url": "https://www.csa.gov.sg/en/singcert/Alerts/al-2025-079", "label": "Singapore CSA 警报" },
+            { "url": "https://www.techradar.com/pro/security/apple-rushes-out-emergency-fix-for-actively-exploited-iphone-zero-day", "label": "TechRadar 报道" }
+          ],
+          "whyCN": "零日涉及广泛 Apple 终端，需尽快更新以降低被定向攻击利用的风险。",
+          "whyEN": "A widely deployed Apple stack zero-day; rapid patching reduces exposure to targeted attacks."
+        },
+        {
+          "title": "NVIDIA 推出 Spectrum-XGS / NVIDIA unveils Spectrum-XGS",
+          "factsCN": [
+            "NVIDIA 在 Hot Chips 宣布 Spectrum-XGS，以 Ethernet “scale-across” 连接多数据中心，构建统一 AI 集群；CoreWeave 将率先部署。"
+          ],
+          "factsEN": [
+            "At Hot Chips, NVIDIA announced Spectrum-XGS ‘scale-across’ Ethernet to link multiple data centers into a unified AI cluster; CoreWeave will adopt early."
+          ],
+          "keyInfo": {
+            "timeSGT": "2025-08-22",
+            "actor": "NVIDIA",
+            "market": "数据中心网络",
+            "impact": "新产品系列"
+          },
+          "image": {
+            "src": "https://www.nvidia.com/etc/designs/nvidiaGDC/clientlibs_base/images/lexicon-logo-new.svg",
+            "caption": "NVIDIA 宣布 Spectrum-XGS",
+            "credit": "NVIDIA",
+            "href": "https://nvidianews.nvidia.com/news/nvidia-unveils-spectrum-xgs"
+          },
+          "links": [
+            { "url": "https://nvidianews.nvidia.com/news/nvidia-unveils-spectrum-xgs", "label": "NVIDIA 新闻稿（官方）" },
+            { "url": "https://onezero.medium.com/nvidia-unveils-spectrum-xgs-ethernet-for-ai-data-centers-3f6d4a2fe0e4", "label": "OneZero 报道" }
+          ],
+          "whyCN": "跨数据中心以太方案有望成为大规模 AI 训练/推理的新网络基建选项。",
+          "whyEN": "Signals Ethernet-based, multi-DC fabrics as a contender for large-scale AI networking."
+        },
+        {
+          "title": "微软释出紧急修复 / Microsoft ships OOB reset fix",
+          "factsCN": [
+            "微软针对 8 月补丁导致“重置此电脑/通过 Windows Update 修复”失效问题发布 OOB 修复（KB5066188/KB5066189）；并确认 NDI 流媒体性能回退为已知问题。"
+          ],
+          "factsEN": [
+            "Microsoft issued out-of-band fixes (KB5066188/KB5066189) for Reset/Recovery failures from the August update, and acknowledged NDI streaming performance regressions as a known issue."
+          ],
+          "keyInfo": {
+            "timeSGT": "2025-08-19",
+            "actor": "Microsoft",
+            "market": "Windows 10/11 客户端",
+            "impact": "功能回退 + OOB 修复"
+          },
+          "image": {
+            "src": "https://learn.microsoft.com/en-us/windows/release-health/images/windows-logo.png",
+            "caption": "微软发布 OOB 修复并记录 NDI 已知问题",
+            "credit": "Microsoft",
+            "href": "https://support.microsoft.com/en-us/topic/august-12-2025-kb5063709-os-builds-19044-6216-and-19045-6216-96d99cf6-f8b5-4798-9892-4e3eb8f11548"
+          },
+          "links": [
+            { "url": "https://support.microsoft.com/en-us/topic/august-12-2025-kb5063709-os-builds-19044-6216-and-19045-6216-96d99cf6-f8b5-4798-9892-4e3eb8f11548", "label": "KB5063709（官方：含已知问题）" },
+            { "url": "https://support.microsoft.com/en-us/topic/august-12-2025-kb5063878-os-build-26100-4946-e4b87262-75c8-4fef-9df7-4a18099ee294", "label": "KB5063878（官方：含 NDI 提示）" },
+            { "url": "https://www.bleepingcomputer.com/news/microsoft/microsoft-august-windows-updates-cause-severe-ndi-streaming-issues/", "label": "BleepingComputer 报道" }
+          ],
+          "whyCN": "涉及系统重置与内容制作工作流，IT 管理与直播/教育行业需及时跟进修复与临时规避。",
+          "whyEN": "Impacts reset/recovery and NDI workflows—IT and media/education should apply the OOB fix or workarounds."
+        },
+        {
+          "title": "Zoom 修复高危 Windows 提权漏洞 / Zoom fixes Windows EoP",
+          "factsCN": [
+            "Zoom 公布并修复 Windows 客户端不受信任搜索路径漏洞 CVE-2025-49457（CVSS 9.6）。"
+          ],
+          "factsEN": [
+            "Zoom disclosed and patched Windows untrusted search path issue CVE-2025-49457 (CVSS 9.6)."
+          ],
+          "keyInfo": {
+            "timeSGT": "2025-08-14",
+            "actor": "Zoom",
+            "market": "Windows 客户端",
+            "impact": "CVE-2025-494
