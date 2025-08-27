@@ -64,6 +64,63 @@ function fmtMonthDay(iso) {
 function classNames(...xs) {
   return xs.filter(Boolean).join(" ");
 }
+// ===== Image helpers (auto-pick images/logos for items & cards) =====
+function domainFromUrl(u) {
+  try { return new URL(u).hostname.replace(/^www\./, ""); } catch { return ""; }
+}
+function clearbitLogo(domain) {
+  return domain ? `https://logo.clearbit.com/${domain}` : "";
+}
+// 常见域名到官方 Logo 的映射（比 Clearbit 更优先）
+const LOGO_MAP = {
+  "apple.com": "https://www.apple.com/ac/structured-data/images/knowledge_graph_logo.png?202310101913",
+  "nvidia.com": "https://www.nvidia.com/etc/designs/nvidiaGDC/clientlibs_base/images/lexicon-logo-new.svg",
+  "microsoft.com": "https://learn.microsoft.com/en-us/windows/release-health/images/windows-logo.png",
+  "zoom.us": "https://st1.zoom.us/static/6.3.12318/image/new/ZoomLogo.png",
+  "google.com": "https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_92x30dp.png",
+  "chromium.org": "https://www.google.com/chrome/static/images/chrome-logo.svg",
+  "mozilla.org": "https://www.mozilla.org/media/img/firefox/logo/quantum/logo-lg-high-res.7ba3ce88e1a1.png",
+  "gitlab.com": "https://about.gitlab.com/images/press/logo/png/gitlab-logo-500.png",
+  "github.com": "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png",
+  "jetbrains.com": "https://resources.jetbrains.com/storage/products/company/brand/logos/IntelliJ_IDEA.png",
+  "cloudflare.com": "https://www.cloudflare.com/img/logo-cloudflare-dark.svg",
+  "openai.com": "https://cdn.openai.com/static/openai-white-logomark.svg",
+  "cisa.gov": "https://www.cisa.gov/profiles/cisad8_gov/themes/custom/cisa_uswds/assets/img/cisa-logo.svg",
+  "fda.gov": "https://www.fda.gov/themes/fda_theme/images/fda-logo.svg",
+  "webkit.org": "https://webkit.org/wp-content/uploads/webkit.png",
+  "android.com": "https://www.android.com/static/2016/img/share/andy-sm.png"
+};
+
+// 从一条 item 里挑一张图：优先 item.image.src → 官方映射 → Clearbit → 无
+function pickItemImage(item) {
+  // 1) 直接用 JSON 声明的图片
+  const s = item?.image?.src;
+  if (s) {
+    return {
+      src: s,
+      caption: item.image.caption || "",
+      credit: item.image.credit || "",
+      href: item.image.href || s
+    };
+  }
+  // 2) 看第一条链接的域名
+  const firstUrl = Array.isArray(item?.links) && item.links.length ? item.links[0].url : "";
+  const dom = domainFromUrl(firstUrl);
+  if (dom && LOGO_MAP[dom]) {
+    const m = LOGO_MAP[dom];
+    return { src: m, caption: dom, credit: dom, href: firstUrl || m };
+  }
+  // 3) 用 Clearbit 域名 Logo
+  if (dom) {
+    const logo = clearbitLogo(dom);
+    return { src: logo, caption: dom, credit: "Logo", href: firstUrl || logo };
+  }
+  // 4) 实在没有就返回空（调用处会跳过渲染）
+  return { src: "", caption: "", credit: "", href: "" };
+}
+// ===== Image helpers end =====
+
+// Theme helpers --------------------------------------------------------------
 
 // Theme (system only)
 function applyTheme(theme) {
