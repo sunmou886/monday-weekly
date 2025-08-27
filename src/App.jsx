@@ -613,49 +613,76 @@ function IssuePage({ issue, onBack }) {
   );
 }
 
-// ===== BEGIN: REPLACE ItemBlock =====
+// ===== BEGIN: FIXED ItemBlock =====
 function ItemBlock({ item, idx, isLast }) {
-  // Image：优先 item.image；否则抓链接页 og:image；抓不到用 Unsplash；不裁剪，最大高 380
-const img = useResolvedImage(item);
+  // resolve image: item.image -> og:image of first link -> Unsplash
+  const img = useResolvedImage(item);
 
-{img.src && (
-  <figure className="overflow-hidden rounded-2xl border border-neutral-200 bg-neutral-100 dark:border-neutral-800 dark:bg-neutral-800">
-    <a href={img.href || img.src} target="_blank" rel="noreferrer" className="block">
-      <div className="w-full flex items-center justify-center">
-        <img
-          src={img.src}
-          alt={item.image?.alt || "image"}
-          loading="lazy"
-          onError={(e) => {
-            if (!e.currentTarget.dataset.fallback) {
-              e.currentTarget.dataset.fallback = "1";
-              e.currentTarget.src = randomUnsplash(1200, 800);
-            } else {
-              e.currentTarget.style.display = "none";
-            }
-          }}
-          className="max-h-[380px] max-w-full w-auto h-auto object-contain"
-        />
+  return (
+    <section className="space-y-5 sm:space-y-6 py-2">
+      {/* Title */}
+      <h2 className="font-sans font-bold text-2xl leading-snug">
+        <span className="mr-2 text-neutral-400">{String(idx).padStart(2, "0")}</span>
+        {item.title}
+      </h2>
+
+      {/* Facts */}
+      <div className="space-y-2">
+        {Array.isArray(item.factsCN) &&
+          item.factsCN.map((s, i) => (
+            <p key={`cn-${i}`} className="text-[16px] leading-7 text-neutral-900 dark:text-neutral-100">
+              {s}
+            </p>
+          ))}
+        {Array.isArray(item.factsEN) &&
+          item.factsEN.map((s, i) => (
+            <p key={`en-${i}`} className="text-[16px] leading-7 text-neutral-900 dark:text-neutral-100">
+              {s}
+            </p>
+          ))}
       </div>
-    </a>
-    {(img.caption || img.credit) && (
-      <figcaption className="flex items-center justify-between gap-3 bg-neutral-50 px-4 py-2 text-xs text-neutral-600 dark:bg-neutral-900 dark:text-neutral-400">
-        <span className="truncate">{img.caption}</span>
-        {img.href && (
-          <a
-            className="shrink-0 items-center gap-1 text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200"
-            href={img.href}
-            target="_blank" rel="noreferrer"
-          >
-            {img.credit} <ExternalLink className="ml-1 inline h-3.5 w-3.5" />
+
+      {/* Key info */}
+      {item.keyInfo && <KeyInfoRow info={item.keyInfo} />}
+
+      {/* Image: contain, max height 380; lazy; onError -> Unsplash once then hide */}
+      {img.src && (
+        <figure className="overflow-hidden rounded-2xl border border-neutral-200 bg-neutral-100 dark:border-neutral-800 dark:bg-neutral-800">
+          <a href={img.href || img.src} target="_blank" rel="noreferrer" className="block">
+            <div className="w-full flex items-center justify-center">
+              <img
+                src={img.src}
+                alt={item.image?.alt || "image"}
+                loading="lazy"
+                onError={(e) => {
+                  if (!e.currentTarget.dataset.fallback) {
+                    e.currentTarget.dataset.fallback = "1";
+                    e.currentTarget.src = randomUnsplash(1200, 800);
+                  } else {
+                    e.currentTarget.style.display = "none";
+                  }
+                }}
+                className="max-h-[380px] max-w-full w-auto h-auto object-contain"
+              />
+            </div>
           </a>
-        )}
-      </figcaption>
-    )}
-  </figure>
-)}
-
-
+          {(img.caption || img.credit) && (
+            <figcaption className="flex items-center justify-between gap-3 bg-neutral-50 px-4 py-2 text-xs text-neutral-600 dark:bg-neutral-900 dark:text-neutral-400">
+              <span className="truncate">{img.caption}</span>
+              {img.href && (
+                <a
+                  className="shrink-0 items-center gap-1 text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200"
+                  href={img.href}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  {img.credit} <ExternalLink className="ml-1 inline h-3.5 w-3.5" />
+                </a>
+              )}
+            </figcaption>
+          )}
+        </figure>
+      )}
 
       {/* Links / Citations */}
       {Array.isArray(item.links) && item.links.length > 0 && (
@@ -683,7 +710,7 @@ const img = useResolvedImage(item);
         </div>
       )}
 
-      {/* 分割线 */}
+      {/* Divider */}
       {!isLast && (
         <div className="py-12">
           <hr className="border-neutral-200 dark:border-neutral-800" />
@@ -692,7 +719,7 @@ const img = useResolvedImage(item);
     </section>
   );
 }
-// ===== END: REPLACE ItemBlock =====
+// ===== END: FIXED ItemBlock =====
 
 
 // 正文图片：懒加载；加载前隐藏；失败则整体不渲染
