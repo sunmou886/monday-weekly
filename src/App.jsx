@@ -64,71 +64,128 @@ function fmtMonthDay(iso) {
 function classNames(...xs) {
   return xs.filter(Boolean).join(" ");
 }
-// ===== Image helpers (auto-pick images/logos; fallback to Unsplash) =====
+// ===== Image resolving helpers (OG first, then Unsplash) =====
+const IMG_CACHE_KEY = "mw.img.cache.v1";
+
 function domainFromUrl(u) {
   try { return new URL(u).hostname.replace(/^www\./, ""); } catch { return ""; }
 }
-function clearbitLogo(domain) {
-  return domain ? `https://logo.clearbit.com/${domain}` : "";
+function toAbsoluteUrl(maybe, baseUrl) {
+  if (!maybe) return "";
+  if (/^https?:\/\//i.test(maybe)) return maybe;
+  if (maybe.startsWith("//")) return "https:" + maybe;
+  try {
+    const base = new URL(baseUrl);
+    return new URL(maybe, `${base.protocol}//${base.host}`).toString();
+  } catch { return maybe; }
 }
-// 随机 Unsplash（Wallpapers 主题），带 sig 防缓存
+function toJinaProxy(url) {
+  // 通过 r.jina.ai 获取 HTML 文本，绕过 CORS
+  try {
+    const u = new URL(url);
+    return `https://r.jina.ai/${u.protocol}//${u.host}${u.pathname}${u.search}`;
+  } catch { return ""; }
+}
 function randomUnsplash(w = 1600, h = 900) {
   const sig = Math.floor(Math.random() * 1e9);
   return `https://source.unsplash.com/random/${w}x${h}/?wallpapers&sig=${sig}`;
 }
-// 常见域名 → 官方 Logo（优先于 Clearbit）
-const LOGO_MAP = {
-  "apple.com": "https://www.apple.com/ac/structured-data/images/knowledge_graph_logo.png?202310101913",
-  "nvidia.com": "https://www.nvidia.com/etc/designs/nvidiaGDC/clientlibs_base/images/lexicon-logo-new.svg",
-  "microsoft.com": "https://learn.microsoft.com/en-us/windows/release-health/images/windows-logo.png",
-  "zoom.us": "https://st1.zoom.us/static/6.3.12318/image/new/ZoomLogo.png",
-  "google.com": "https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_92x30dp.png",
-  "chromium.org": "https://www.google.com/chrome/static/images/chrome-logo.svg",
-  "mozilla.org": "https://www.mozilla.org/media/img/firefox/logo/quantum/logo-lg-high-res.7ba3ce88e1a1.png",
-  "gitlab.com": "https://about.gitlab.com/images/press/logo/png/gitlab-logo-500.png",
-  "github.com": "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png",
-  "jetbrains.com": "https://resources.jetbrains.com/storage/products/company/brand/logos/IntelliJ_IDEA.png",
-  "cloudflare.com": "https://www.cloudflare.com/img/logo-cloudflare-dark.svg",
-  "openai.com": "https://cdn.openai.com/static/openai-white-logomark.svg",
-  "cisa.gov": "https://www.cisa.gov/profiles/cisad8_gov/themes/custom/cisa_uswds/assets/img/cisa-logo.svg",
-  "fda.gov": "https://www.fda.gov/themes/fda_theme/images/fda-logo.svg",
-  "webkit.org": "https://webkit.org/wp-content/uploads/webkit.png",
-  "android.com": "https://www.android.com/static/2016/img/share/andy-sm.png"
-};
-
-// 从条目里挑图：item.image.src → 官方映射 → Clearbit → Unsplash 随机
-function pickItemImage(item) {
-  // 1) JSON 直接提供
-  const s = item?.image?.src;
-  if (s) {
-    return {
-      src: s,
-      caption: item.image.caption || "",
-      credit: item.image.credit || "",
-      href: item.image.href || s
-    };
-  }
-  // 2) 第一条链接域名（官方映射）
-  const firstUrl = Array.isArray(item?.links) && item.links.length ? item.links[0].url : "";
-  const dom = domainFromUrl(firstUrl);
-  if (dom && LOGO_MAP[dom]) {
-    const m = LOGO_MAP[dom];
-    return { src: m, caption: dom, credit: dom, href: firstUrl || m };
-  }
-  // 3) Clearbit 域名 Logo
-  if (dom) {
-    const logo = clearbitLogo(dom);
-    return { src: logo, caption: dom, credit: "Logo", href: firstUrl || logo };
-  }
-  // 4) 最终兜底：Unsplash wallpapers 随机图
-  return {
-    src: randomUnsplash(1600, 900),
-    caption: "Unsplash Wallpapers (random)",
-    credit: "Unsplash",
-    href: "https://unsplash.com/t/wallpapers"
-  };
+function loadImgCache() {
+  try { return JSON.parse(localStorage.getItem(IMG_CACHE_KEY) || "{}"); } catch { return {}; }
 }
-// ===== Image helpers end =====
+function saveImgCache(map) {
+  try { localStorage.setItem(IMG_CACHE_KEY, JSON.stringify(map)); } catch {}
+}
+
+// 从页面 HTML 中解析 og:image / twitter:image
+async function resolveOgImage(url) {
+  const proxy = toJinaProxy(url);
+  if (!proxy) return "";
+  const res = await fetch(proxy, { cache: "no-store" });
+  if (!res.ok) return "";
+  const html = await res.text();
+
+  const reOg = /<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["'][^>]*>/i;
+  const reTw = /<meta[^>]+name=["']twitter:image(?::src)?["'][^>]+content=["']([^"']+)["'][^>]*>/i;
+
+  const mOg = html.match(reOg);
+  const mTw = html.match(reTw);
+  const raw = (mOg && mOg[1]) || (mTw && mTw[1]) || "";
+  return toAbsoluteUrl(raw, url);
+}
+
+// 针对一条 item 的“最终图片”解析：
+// 1) item.image.src → 2) 抓第一条链接页 og:image → 3) Unsplash 随机
+function useResolvedImage(item) {
+  const firstUrl = Array.isArray(item?.links) && item.links.length ? item.links[0].url : "";
+  const initial = () => {
+    if (item?.image?.src) {
+      const s = item.image.src;
+      return { src: s, caption: item.image.caption || "", credit: item.image.credit || "", href: item.image.href || s };
+    }
+    // 先不给默认图，让 effect 去尝试抓取；渲染期避免闪烁
+    return { src: "", caption: "", credit: "", href: firstUrl || "" };
+  };
+
+  const [img, setImg] = React.useState(initial);
+  React.useEffect(() => {
+    // 已有显式图片，直接用
+    if (item?.image?.src) return;
+
+    // 有缓存就直接用
+    const cache = loadImgCache();
+    if (firstUrl && cache[firstUrl]) {
+      setImg({ src: cache[firstUrl], caption: domainFromUrl(firstUrl), credit: "OG", href: firstUrl });
+      return;
+    }
+
+    // 没链接：直接用 Unsplash
+    if (!firstUrl) {
+      setImg({
+        src: randomUnsplash(1200, 800),
+        caption: "Unsplash Wallpapers (random)",
+        credit: "Unsplash",
+        href: "https://unsplash.com/t/wallpapers"
+      });
+      return;
+    }
+
+    // 尝试抓 og:image
+    let alive = true;
+    (async () => {
+      try {
+        const s = await resolveOgImage(firstUrl);
+        if (!alive) return;
+        if (s) {
+          const next = { src: s, caption: domainFromUrl(firstUrl), credit: "OG", href: firstUrl };
+          const nextCache = loadImgCache(); nextCache[firstUrl] = s; saveImgCache(nextCache);
+          setImg(next);
+        } else {
+          // 抓不到就 Unsplash
+          setImg({
+            src: randomUnsplash(1200, 800),
+            caption: "Unsplash Wallpapers (random)",
+            credit: "Unsplash",
+            href: "https://unsplash.com/t/wallpapers"
+          });
+        }
+      } catch {
+        setImg({
+          src: randomUnsplash(1200, 800),
+          caption: "Unsplash Wallpapers (random)",
+          credit: "Unsplash",
+          href: "https://unsplash.com/t/wallpapers"
+        });
+      }
+    })();
+    return () => { alive = false; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [firstUrl, item?.image?.src]);
+
+  return img;
+}
+// ===== Image resolving helpers end =====
+
 
 
 // Theme helpers --------------------------------------------------------------
@@ -421,12 +478,10 @@ function ArchivePage({ issues, q, setQ, openIssue }) {
 
 // ===== BEGIN: REPLACE IssueCard =====
 function IssueCard({ issue, onClick }) {
-  // 从条目中挑首张可用图（优先 item.image.src → 官方映射 → Clearbit）
-  // 旧：const firstImgObj = issue.items?.map(pickItemImage).find(i => i && i.src);
-// 旧：const cover = firstImgObj?.src || "";
-const firstImgObj = issue.items?.map(pickItemImage).find(i => i && i.src);
-const cover = firstImgObj?.src || randomUnsplash(1280, 720);
-
+  // 取第一条 item 来解析封面（简化请求量）
+  const firstItem = issue.items?.[0] || {};
+  const coverObj = useResolvedImage(firstItem);
+  const cover = coverObj.src || randomUnsplash(1280, 720);
 
   return (
     <article
@@ -439,25 +494,29 @@ const cover = firstImgObj?.src || randomUnsplash(1280, 720);
             src={cover}
             alt="cover"
             loading="lazy"
-            onError={(e) => { e.currentTarget.style.display = "none"; }}
+            onError={(e) => {
+              if (!e.currentTarget.dataset.fallback) {
+                e.currentTarget.dataset.fallback = "1";
+                e.currentTarget.src = randomUnsplash(1280, 720);
+              } else {
+                e.currentTarget.style.display = "none";
+              }
+            }}
             className="h-full w-full object-cover transition group-hover:scale-[1.01]"
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center text-neutral-400">No cover</div>
         )}
       </div>
-
       <div className="space-y-2 p-5">
         <h3 className="line-clamp-2 font-sans font-bold text-lg leading-snug sm:text-xl">
           {issue.title || `${fmtDate(issue.start)} — ${fmtDate(issue.end)}`}
         </h3>
-
         <div className="flex items-center gap-3 text-xs text-neutral-500 dark:text-neutral-400">
           <span className="inline-flex items-center gap-1">
             <Calendar className="h-3.5 w-3.5" /> {fmtDate(issue.start)} — {fmtDate(issue.end)}
           </span>
         </div>
-
         {(issue.summaryCN || issue.summaryEN) && (
           <p className="line-clamp-2 text-[15px] text-neutral-700 dark:text-neutral-300">
             <span>{issue.summaryCN || ""}</span>
@@ -469,14 +528,12 @@ const cover = firstImgObj?.src || randomUnsplash(1280, 720);
             )}
           </p>
         )}
-
-        <div className="pt-2 text-sm text-neutral-500 dark:text-neutral-400">
-          {issue.items?.length || 0} items
-        </div>
+        <div className="pt-2 text-sm text-neutral-500 dark:text-neutral-400">{issue.items?.length || 0} items</div>
       </div>
     </article>
   );
 }
+
 // ===== END: REPLACE IssueCard =====
 
 
@@ -558,50 +615,27 @@ function IssuePage({ issue, onBack }) {
 
 // ===== BEGIN: REPLACE ItemBlock =====
 function ItemBlock({ item, idx, isLast }) {
-  const img = pickItemImage(item);
+  // Image：优先 item.image；否则抓链接页 og:image；抓不到用 Unsplash；不裁剪，最大高 380
+const img = useResolvedImage(item);
 
-  return (
-    <section className="space-y-5 sm:space-y-6 py-2">
-      {/* 标题 */}
-      <h2 className="font-sans font-bold text-2xl leading-snug">
-        <span className="mr-2 text-neutral-400">{String(idx).padStart(2,'0')}</span>
-        {item.title}
-      </h2>
-
-      {/* Facts */}
-      <div className="space-y-2">
-        {Array.isArray(item.factsCN) && item.factsCN.map((s, i) => (
-          <p key={`cn-${i}`} className="text-[16px] leading-7 text-neutral-900 dark:text-neutral-100">{s}</p>
-        ))}
-        {Array.isArray(item.factsEN) && item.factsEN.map((s, i) => (
-          <p key={`en-${i}`} className="text-[16px] leading-7 text-neutral-900 dark:text-neutral-100">{s}</p>
-        ))}
-      </div>
-
-      {/* Key info */}
-      {item.keyInfo && <KeyInfoRow info={item.keyInfo} />}
-
-      {/* Image：懒加载；抓不到静默隐藏 */}
- {/* Image：等比缩小，不裁剪，最大高 380；图失败隐藏；caption 在下方 */}
 {img.src && (
   <figure className="overflow-hidden rounded-2xl border border-neutral-200 bg-neutral-100 dark:border-neutral-800 dark:bg-neutral-800">
     <a href={img.href || img.src} target="_blank" rel="noreferrer" className="block">
       <div className="w-full flex items-center justify-center">
         <img
-  src={img.src}
-  alt={item.image?.alt || "image"}
-  loading="lazy"
-  onError={(e) => {
-    if (!e.currentTarget.dataset.fallback) {
-      e.currentTarget.dataset.fallback = "1";
-      e.currentTarget.src = randomUnsplash(1200, 800);
-    } else {
-      e.currentTarget.style.display = "none";
-    }
-  }}
-  className="max-h-[380px] max-w-full w-auto h-auto object-contain"
-/>
-
+          src={img.src}
+          alt={item.image?.alt || "image"}
+          loading="lazy"
+          onError={(e) => {
+            if (!e.currentTarget.dataset.fallback) {
+              e.currentTarget.dataset.fallback = "1";
+              e.currentTarget.src = randomUnsplash(1200, 800);
+            } else {
+              e.currentTarget.style.display = "none";
+            }
+          }}
+          className="max-h-[380px] max-w-full w-auto h-auto object-contain"
+        />
       </div>
     </a>
     {(img.caption || img.credit) && (
@@ -611,8 +645,7 @@ function ItemBlock({ item, idx, isLast }) {
           <a
             className="shrink-0 items-center gap-1 text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200"
             href={img.href}
-            target="_blank"
-            rel="noreferrer"
+            target="_blank" rel="noreferrer"
           >
             {img.credit} <ExternalLink className="ml-1 inline h-3.5 w-3.5" />
           </a>
@@ -621,6 +654,7 @@ function ItemBlock({ item, idx, isLast }) {
     )}
   </figure>
 )}
+
 
 
       {/* Links / Citations */}
