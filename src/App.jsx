@@ -26,6 +26,12 @@ import {
 const STORAGE_KEY = "monday.weekly.data.v1";
 const THEME_KEY = "mw.theme"; // 'system' | 'light' | 'dark'
 
+async function fetchJSON(url) {
+  const res = await fetch(url, { cache: 'no-store' });
+  if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
+  return res.json();
+}
+
 /** Format YYYY-MM-DD → Mon DD, YYYY (may still be used in titles) */
 function fmtDate(iso) {
   if (!iso) return "";
