@@ -670,10 +670,10 @@ function Footer() {
     <footer className="border-t border-neutral-200 py-8 dark:border-neutral-800">
       <div className="mx-auto flex w-full max-w-5xl flex-col items-start justify-between gap-4 px-4 sm:flex-row sm:items-center sm:px-6 lg:px-8">
         <div className="text-sm text-neutral-500 dark:text-neutral-400">
-          © {new Date().getFullYear()} Monday。Medium 风格界面。
+          © {new Date().getFullYear()} Monday
         </div>
         <div className="text-xs text-neutral-500 dark:text-neutral-400">
-          内容：双语；每句话均以官方与权威媒体交叉核验。图片来自官方/权威来源。
+          一周热点，周一见
         </div>
       </div>
     </footer>
