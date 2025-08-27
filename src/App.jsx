@@ -64,14 +64,19 @@ function fmtMonthDay(iso) {
 function classNames(...xs) {
   return xs.filter(Boolean).join(" ");
 }
-// ===== Image helpers (auto-pick images/logos for items & cards) =====
+// ===== Image helpers (auto-pick images/logos; fallback to Unsplash) =====
 function domainFromUrl(u) {
   try { return new URL(u).hostname.replace(/^www\./, ""); } catch { return ""; }
 }
 function clearbitLogo(domain) {
   return domain ? `https://logo.clearbit.com/${domain}` : "";
 }
-// 常见域名到官方 Logo 的映射（比 Clearbit 更优先）
+// 随机 Unsplash（Wallpapers 主题），带 sig 防缓存
+function randomUnsplash(w = 1600, h = 900) {
+  const sig = Math.floor(Math.random() * 1e9);
+  return `https://source.unsplash.com/random/${w}x${h}/?wallpapers&sig=${sig}`;
+}
+// 常见域名 → 官方 Logo（优先于 Clearbit）
 const LOGO_MAP = {
   "apple.com": "https://www.apple.com/ac/structured-data/images/knowledge_graph_logo.png?202310101913",
   "nvidia.com": "https://www.nvidia.com/etc/designs/nvidiaGDC/clientlibs_base/images/lexicon-logo-new.svg",
@@ -91,9 +96,9 @@ const LOGO_MAP = {
   "android.com": "https://www.android.com/static/2016/img/share/andy-sm.png"
 };
 
-// 从一条 item 里挑一张图：优先 item.image.src → 官方映射 → Clearbit → 无
+// 从条目里挑图：item.image.src → 官方映射 → Clearbit → Unsplash 随机
 function pickItemImage(item) {
-  // 1) 直接用 JSON 声明的图片
+  // 1) JSON 直接提供
   const s = item?.image?.src;
   if (s) {
     return {
@@ -103,22 +108,28 @@ function pickItemImage(item) {
       href: item.image.href || s
     };
   }
-  // 2) 看第一条链接的域名
+  // 2) 第一条链接域名（官方映射）
   const firstUrl = Array.isArray(item?.links) && item.links.length ? item.links[0].url : "";
   const dom = domainFromUrl(firstUrl);
   if (dom && LOGO_MAP[dom]) {
     const m = LOGO_MAP[dom];
     return { src: m, caption: dom, credit: dom, href: firstUrl || m };
   }
-  // 3) 用 Clearbit 域名 Logo
+  // 3) Clearbit 域名 Logo
   if (dom) {
     const logo = clearbitLogo(dom);
     return { src: logo, caption: dom, credit: "Logo", href: firstUrl || logo };
   }
-  // 4) 实在没有就返回空（调用处会跳过渲染）
-  return { src: "", caption: "", credit: "", href: "" };
+  // 4) 最终兜底：Unsplash wallpapers 随机图
+  return {
+    src: randomUnsplash(1600, 900),
+    caption: "Unsplash Wallpapers (random)",
+    credit: "Unsplash",
+    href: "https://unsplash.com/t/wallpapers"
+  };
 }
 // ===== Image helpers end =====
+
 
 // Theme helpers --------------------------------------------------------------
 
@@ -574,12 +585,20 @@ function ItemBlock({ item, idx, isLast }) {
     <a href={img.href || img.src} target="_blank" rel="noreferrer" className="block">
       <div className="w-full flex items-center justify-center">
         <img
-          src={img.src}
-          alt={item.image?.alt || "image"}
-          loading="lazy"
-          onError={(e) => { e.currentTarget.style.display = "none"; }}
-          className="max-h-[380px] max-w-full w-auto h-auto object-contain"
-        />
+  src={img.src}
+  alt={item.image?.alt || "image"}
+  loading="lazy"
+  onError={(e) => {
+    if (!e.currentTarget.dataset.fallback) {
+      e.currentTarget.dataset.fallback = "1";
+      e.currentTarget.src = randomUnsplash(1200, 800);
+    } else {
+      e.currentTarget.style.display = "none";
+    }
+  }}
+  className="max-h-[380px] max-w-full w-auto h-auto object-contain"
+/>
+
       </div>
     </a>
     {(img.caption || img.credit) && (
