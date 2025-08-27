@@ -569,15 +569,17 @@ function ItemBlock({ item, idx, isLast }) {
 
       {/* Image：懒加载；抓不到静默隐藏 */}
       {img.src && (
-        <figure className="overflow-hidden rounded-2xl border border-neutral-200 dark:border-neutral-800">
+        <figure className="overflow-hidden rounded-2xl border border-neutral-200 dark:border-neutral-800 flex items-center justify-center bg-neutral-100 dark:bg-neutral-800">
+
           <a href={img.href || img.src} target="_blank" rel="noreferrer">
-            <img
+          <img
   src={img.src}
   alt={item.image?.alt || "image"}
   loading="lazy"
   onError={(e) => { e.currentTarget.style.display = "none"; }}
-  className="h-[380px] w-full object-cover"
+  className="max-h-[380px] max-w-full w-auto h-auto object-contain"
 />
+
 
           </a>
           {(img.caption || img.credit) && (
