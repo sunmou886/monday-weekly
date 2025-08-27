@@ -208,7 +208,8 @@ function useResolvedImage(item) {
 // ===== Image resolving helpers end =====
 
 
-const IMG_CACHE_KEY = "mw.img.cache.v1";
+// ===== Image resolving helpers (prefer article images, avoid logos; fallback Unsplash) =====
+const IMG_CACHE_KEY = "mw.img.cache.v2";
 
 function domainFromUrl(u) {
   try { return new URL(u).hostname.replace(/^www\./, ""); } catch { return ""; }
@@ -223,7 +224,6 @@ function toAbsoluteUrl(maybe, baseUrl) {
   } catch { return maybe; }
 }
 function toJinaProxy(url) {
-  // 通过 r.jina.ai 获取 HTML 文本，绕过 CORS
   try {
     const u = new URL(url);
     return `https://r.jina.ai/${u.protocol}//${u.host}${u.pathname}${u.search}`;
@@ -240,49 +240,70 @@ function saveImgCache(map) {
   try { localStorage.setItem(IMG_CACHE_KEY, JSON.stringify(map)); } catch {}
 }
 
-// 从页面 HTML 中解析 og:image / twitter:image
-async function resolveOgImage(url) {
+// filters & scoring to avoid logos/icons
+function isBadExt(u) { return /\.svg(\?|$)/i.test(u) || /\.gif(\?|$)/i.test(u); }
+function isLogoish(u) {
+  const s = (u || "").toLowerCase();
+  return /(logo|favicon|icon|sprite|wordmark|lockup|brandmark|badge|avatar|mark)/.test(s);
+}
+function goodExt(u) { return /\.(jpe?g|png|webp|avif)(\?|$)/i.test(u); }
+function scoreImage(u) {
+  const s = (u || "").toLowerCase();
+  let sc = 0;
+  if (/(hero|featured|feature|article|banner|news|press|upload|uploads|media|images|photo|screenshot|figure|cover)/.test(s)) sc += 10;
+  if (goodExt(s)) sc += 5;
+  if (/(1200|1600|2048|1080|w=12|w=16|w=20)/.test(s)) sc += 2;
+  if (isLogoish(s)) sc -= 20;
+  if (isBadExt(s)) sc -= 10;
+  return sc;
+}
+
+// parse article page for og/twitter images, then <img> tags, score & pick
+async function resolveArticleImage(url) {
   const proxy = toJinaProxy(url);
   if (!proxy) return "";
   const res = await fetch(proxy, { cache: "no-store" });
   if (!res.ok) return "";
+
   const html = await res.text();
+  const abs = (u) => toAbsoluteUrl(u, url);
 
-  const reOg = /<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["'][^>]*>/i;
-  const reTw = /<meta[^>]+name=["']twitter:image(?::src)?["'][^>]+content=["']([^"']+)["'][^>]*>/i;
+  const metaRe = /<meta[^>]+(?:property|name)=["'](?:og:image|og:image:secure_url|twitter:image(?::src)?)["'][^>]+content=["']([^"']+)["'][^>]*>/gi;
+  const imgRe  = /<img[^>]+src=["']([^"']+)["'][^>]*>/gi;
 
-  const mOg = html.match(reOg);
-  const mTw = html.match(reTw);
-  const raw = (mOg && mOg[1]) || (mTw && mTw[1]) || "";
-  return toAbsoluteUrl(raw, url);
+  const set = new Set();
+  for (const m of html.matchAll(metaRe)) { if (m[1]) set.add(abs(m[1])); }
+  for (const m of html.matchAll(imgRe))  { if (m[1]) set.add(abs(m[1])); }
+
+  const candidates = [...set]
+    .filter(u => !!u)
+    .filter(u => !isBadExt(u))
+    .filter(u => !isLogoish(u));
+
+  if (!candidates.length) return "";
+
+  candidates.sort((a, b) => scoreImage(b) - scoreImage(a));
+  if (scoreImage(candidates[0]) < 1) return "";
+  return candidates[0];
 }
 
-// 针对一条 item 的“最终图片”解析：
-// 1) item.image.src → 2) 抓第一条链接页 og:image → 3) Unsplash 随机
+// final resolver per item: explicit non-logo -> article image -> Unsplash
 function useResolvedImage(item) {
   const firstUrl = Array.isArray(item?.links) && item.links.length ? item.links[0].url : "";
+
   const initial = () => {
-    if (item?.image?.src) {
-      const s = item.image.src;
+    const s = item?.image?.src || "";
+    if (s && !isLogoish(s) && !isBadExt(s)) {
       return { src: s, caption: item.image.caption || "", credit: item.image.credit || "", href: item.image.href || s };
     }
-    // 先不给默认图，让 effect 去尝试抓取；渲染期避免闪烁
     return { src: "", caption: "", credit: "", href: firstUrl || "" };
   };
 
   const [img, setImg] = React.useState(initial);
+
   React.useEffect(() => {
-    // 已有显式图片，直接用
-    if (item?.image?.src) return;
+    if (img.src) return;
 
-    // 有缓存就直接用
-    const cache = loadImgCache();
-    if (firstUrl && cache[firstUrl]) {
-      setImg({ src: cache[firstUrl], caption: domainFromUrl(firstUrl), credit: "OG", href: firstUrl });
-      return;
-    }
-
-    // 没链接：直接用 Unsplash
     if (!firstUrl) {
       setImg({
         src: randomUnsplash(1200, 800),
@@ -293,26 +314,26 @@ function useResolvedImage(item) {
       return;
     }
 
-    // 尝试抓 og:image
+    const cache = loadImgCache();
+    if (cache[firstUrl]) {
+      setImg({ src: cache[firstUrl], caption: domainFromUrl(firstUrl), credit: "OG", href: firstUrl });
+      return;
+    }
+
     let alive = true;
     (async () => {
       try {
-        const s = await resolveOgImage(firstUrl);
+        const s = await resolveArticleImage(firstUrl);
         if (!alive) return;
         if (s) {
           const next = { src: s, caption: domainFromUrl(firstUrl), credit: "OG", href: firstUrl };
           const nextCache = loadImgCache(); nextCache[firstUrl] = s; saveImgCache(nextCache);
           setImg(next);
-        } else {
-          // 抓不到就 Unsplash
-          setImg({
-            src: randomUnsplash(1200, 800),
-            caption: "Unsplash Wallpapers (random)",
-            credit: "Unsplash",
-            href: "https://unsplash.com/t/wallpapers"
-          });
+          return;
         }
-      } catch {
+      } catch { /* ignore */ }
+
+      if (alive) {
         setImg({
           src: randomUnsplash(1200, 800),
           caption: "Unsplash Wallpapers (random)",
@@ -321,6 +342,7 @@ function useResolvedImage(item) {
         });
       }
     })();
+
     return () => { alive = false; };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [firstUrl, item?.image?.src]);
@@ -328,7 +350,6 @@ function useResolvedImage(item) {
   return img;
 }
 // ===== Image resolving helpers end =====
-
 
 
 // Theme helpers --------------------------------------------------------------
