@@ -1,10 +1,3 @@
-以下两段分别用于：① `src/App.jsx`（放大条目标题=1.8rem、周报主标题=3rem）；② `src/index.css`（让所有英文与数字统一使用 Maple Mono，其他文字仍走系统无衬线）。
-
----
-
-### `src/App.jsx`
-
-```jsx
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Calendar, Clock, Link as LinkIcon, Share2, Upload, Download, Search, ChevronLeft, ExternalLink, Globe, Info } from "lucide-react";
 
