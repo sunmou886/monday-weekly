@@ -12,10 +12,10 @@
         {
           "title": "苹果修补被利用零日 / Apple patches exploited zero-day",
           "factsCN": [
-            "苹果发布 iOS/iPadOS 18.6.2、iPadOS 17.7.10 与 macOS 15.6.1/14.7.8/13.7.8，修复 ImageIO 越界写 CVE-2025-43300；苹果称可能在定向攻击中被利用。"
+            "苹果发布多平台安全更新，修复 ImageIO 越界写 CVE-2025-43300；苹果称该漏洞可能在定向攻击中被利用。"
           ],
           "factsEN": [
-            "Apple released iOS/iPadOS 18.6.2, iPadOS 17.7.10 and macOS 15.6.1/14.7.8/13.7.8 to fix ImageIO OOB write CVE-2025-43300, which Apple says may have been exploited in targeted attacks."
+            "Apple shipped security updates across platforms to fix ImageIO out-of-bounds write CVE-2025-43300, which Apple says may have been exploited in targeted attacks."
           ],
           "keyInfo": {
             "timeSGT": "2025-08-20",
@@ -25,93 +25,594 @@
           },
           "image": {
             "src": "https://www.apple.com/ac/structured-data/images/knowledge_graph_logo.png?202310101913",
-            "caption": "Apple 发布安全更新修补 CVE-2025-43300",
+            "caption": "Apple 安全更新通报",
             "credit": "Apple",
             "href": "https://support.apple.com/en-us/HT201222"
           },
           "links": [
-            { "url": "https://support.apple.com/en-us/HT201222", "label": "Apple 支持：安全更新" },
-            { "url": "https://www.csa.gov.sg/en/singcert/Alerts/al-2025-079", "label": "Singapore CSA 警报" },
-            { "url": "https://www.techradar.com/pro/security/apple-rushes-out-emergency-fix-for-actively-exploited-iphone-zero-day", "label": "TechRadar 报道" }
+            { "url": "https://support.apple.com/en-us/HT201222", "label": "Apple 支持：安全更新（官方）" },
+            { "url": "https://nvd.nist.gov/vuln/detail/CVE-2025-43300", "label": "NVD：CVE-2025-43300" },
+            { "url": "https://www.malwarebytes.com/blog/news/2025/08/apple-issues-emergency-fix-for-new-zero-day", "label": "Malwarebytes 报道" }
           ],
-          "whyCN": "零日涉及广泛 Apple 终端，需尽快更新以降低被定向攻击利用的风险。",
-          "whyEN": "A widely deployed Apple stack zero-day; rapid patching reduces exposure to targeted attacks."
+          "whyCN": "零日影响 Apple 生态多版本，应尽快更新以降低被定向攻击的风险。",
+          "whyEN": "A cross-platform Apple zero-day warrants rapid patching to reduce targeted attack exposure."
+        },
+        {
+          "title": "微软发布 OOB 修复重置问题 / Microsoft ships OOB reset fix",
+          "factsCN": [
+            "微软针对 8 月补丁后出现的“重置此电脑/修复安装”失败问题发布 OOB 修复（含 KB5066188/KB5066189），并记录 NDI 流媒体性能回退为已知问题。"
+          ],
+          "factsEN": [
+            "Microsoft issued out-of-band fixes (including KB5066188/KB5066189) for Reset/Repair failures after August updates and documented NDI streaming regressions as a known issue."
+          ],
+          "keyInfo": {
+            "timeSGT": "2025-08-19",
+            "actor": "Microsoft",
+            "market": "Windows 10/11",
+            "impact": "功能异常 + OOB 修复"
+          },
+          "image": {
+            "src": "https://learn.microsoft.com/en-us/windows/release-health/images/windows-logo.png",
+            "caption": "Windows 发行健康文档",
+            "credit": "Microsoft",
+            "href": "https://support.microsoft.com/en-us/topic/august-12-2025-kb5063709-os-builds-19044-6216-and-19045-6216-96d99cf6-f8b5-4798-9892-4e3eb8f11548"
+          },
+          "links": [
+            { "url": "https://support.microsoft.com/en-us/topic/august-12-2025-kb5063709-os-builds-19044-6216-and-19045-6216-96d99cf6-f8b5-4798-9892-4e3eb8f11548", "label": "KB5063709（官方）" },
+            { "url": "https://support.microsoft.com/en-us/topic/august-12-2025-kb5063878-os-build-26100-4946-e4b87262-75c8-4fef-9df7-4a18099ee294", "label": "KB5063878（官方）" },
+            { "url": "https://www.bleepingcomputer.com/news/microsoft/microsoft-august-windows-updates-cause-severe-ndi-streaming-issues/", "label": "BleepingComputer 报道" }
+          ],
+          "whyCN": "影响系统恢复与制作/直播工作流，IT 管理需优先评估并应用 OOB 修复。",
+          "whyEN": "Impacts reset/recovery and NDI workflows; IT teams should prioritize applying the OOB fix."
+        },
+        {
+          "title": "Chrome 139 安全更新 / Chrome 139 security update",
+          "factsCN": [
+            "Chrome 稳定版 139.0.7258.138/.139 于 8 月 19 日发布，包含多项安全修复（含 CVE-2025-9132）。"
+          ],
+          "factsEN": [
+            "Chrome Stable 139.0.7258.138/.139 landed on Aug 19 with multiple security fixes, including CVE-2025-9132."
+          ],
+          "keyInfo": {
+            "timeSGT": "2025-08-19",
+            "actor": "Google Chrome",
+            "market": "Windows/macOS/Linux/ChromeOS",
+            "impact": "安全修复（含 CVE-2025-9132）"
+          },
+          "image": {
+            "src": "https://www.google.com/chrome/static/images/chrome-logo.svg",
+            "caption": "Chrome 稳定版更新",
+            "credit": "Google",
+            "href": "https://chromereleases.googleblog.com/2025/08/stable-channel-update-for-desktop_19.html"
+          },
+          "links": [
+            { "url": "https://chromereleases.googleblog.com/2025/08/stable-channel-update-for-desktop_19.html", "label": "Chrome Releases（官方）" },
+            { "url": "https://www.cyber.gc.ca/en/alerts-advisories/google-chrome-security-advisory-av25-530", "label": "加拿大网络安全中心通报" },
+            { "url": "https://www.hkcert.org/security-bulletin/google-chrome-remote-code-execution-vulnerability_20250820", "label": "HKCERT 通告" }
+          ],
+          "whyCN": "桌面主流浏览器高频修复，企业需按变更窗口尽快推进更新。",
+          "whyEN": "High-velocity browser fixes; enterprises should roll out the update promptly."
+        },
+        {
+          "title": "Firefox 142 正式发布 / Firefox 142 released",
+          "factsCN": [
+            "Mozilla 发布 Firefox 142（含 Android/iOS 同步更新），并修复多项安全问题（MFSA-2025-64）。"
+          ],
+          "factsEN": [
+            "Mozilla shipped Firefox 142 (with Android/iOS), addressing multiple security issues per MFSA-2025-64."
+          ],
+          "keyInfo": {
+            "timeSGT": "2025-08-19",
+            "actor": "Mozilla",
+            "market": "桌面与移动浏览器",
+            "impact": "功能与安全更新（MFSA-2025-64）"
+          },
+          "image": {
+            "src": "https://www.mozilla.org/media/img/firefox/logo/quantum/logo-quantum-high-res.7f39c930e6a3.png",
+            "caption": "Firefox 142 发布",
+            "credit": "Mozilla",
+            "href": "https://www.firefox.com/en-US/firefox/142.0/releasenotes/"
+          },
+          "links": [
+            { "url": "https://developer.mozilla.org/en-US/docs/Mozilla/Firefox/Releases/142", "label": "MDN 开发者说明（官方）" },
+            { "url": "https://www.mozilla.org/en-US/security/advisories/mfsa2025-64/", "label": "Mozilla 安全通告（官方）" },
+            { "url": "https://www.ghacks.net/2025/08/19/firefox-142-ships-with-tracking-protection-tab-groups-and-extensions-improvements/", "label": "gHacks 报道" }
+          ],
+          "whyCN": "覆盖多平台的版本跃迁，需兼顾兼容性与安全测试。",
+          "whyEN": "Cross-platform release; teams should test compatibility and apply the security fixes."
+        },
+        {
+          "title": "Cloudflare 比例限流引发 5xx 错误 / Cloudflare throttling incident",
+          "factsCN": [
+            "Cloudflare 8 月 21 日称在恢复缓存缺失导致的请求增加时引入比例限流策略，引发少量区域 5xx 错误并已回退。"
+          ],
+          "factsEN": [
+            "On Aug 21, Cloudflare said proportional throttling during recovery from cache misses caused localized 5xx errors before rollback."
+          ],
+          "keyInfo": {
+            "timeSGT": "2025-08-21",
+            "actor": "Cloudflare",
+            "market": "CDN/边缘网络",
+            "impact": "局部 5xx 错误；策略回退"
+          },
+          "image": {
+            "src": "https://www.cloudflare.com/img/logo-cloudflare-dark.svg",
+            "caption": "Cloudflare 事件复盘",
+            "credit": "Cloudflare",
+            "href": "https://blog.cloudflare.com/incident-on-august-21st-2025/"
+          },
+          "links": [
+            { "url": "https://blog.cloudflare.com/incident-on-august-21st-2025/", "label": "Cloudflare 官方复盘" },
+            { "url": "https://www.cloudflarestatus.com/", "label": "Cloudflare 状态页" }
+          ],
+          "whyCN": "对大规模分布式策略变更的风险警示，业务需评估边缘策略回退预案。",
+          "whyEN": "Highlights risk in distributed policy changes; ensure robust rollback plans at the edge."
         },
         {
           "title": "NVIDIA 推出 Spectrum-XGS / NVIDIA unveils Spectrum-XGS",
           "factsCN": [
-            "NVIDIA 在 Hot Chips 宣布 Spectrum-XGS，以 Ethernet “scale-across” 连接多数据中心，构建统一 AI 集群；CoreWeave 将率先部署。"
+            "NVIDIA 于 Hot Chips 宣布 Spectrum-XGS，以以太网“跨域规模”连接多数据中心构建统一 AI 集群。"
           ],
           "factsEN": [
-            "At Hot Chips, NVIDIA announced Spectrum-XGS ‘scale-across’ Ethernet to link multiple data centers into a unified AI cluster; CoreWeave will adopt early."
+            "At Hot Chips, NVIDIA announced Spectrum-XGS to ‘scale-across’ data centers via Ethernet for unified AI clusters."
           ],
           "keyInfo": {
             "timeSGT": "2025-08-22",
             "actor": "NVIDIA",
             "market": "数据中心网络",
-            "impact": "新产品系列"
+            "impact": "新产品系列发布"
           },
           "image": {
             "src": "https://www.nvidia.com/etc/designs/nvidiaGDC/clientlibs_base/images/lexicon-logo-new.svg",
-            "caption": "NVIDIA 宣布 Spectrum-XGS",
+            "caption": "NVIDIA Spectrum-XGS",
             "credit": "NVIDIA",
             "href": "https://nvidianews.nvidia.com/news/nvidia-unveils-spectrum-xgs"
           },
           "links": [
             { "url": "https://nvidianews.nvidia.com/news/nvidia-unveils-spectrum-xgs", "label": "NVIDIA 新闻稿（官方）" },
-            { "url": "https://onezero.medium.com/nvidia-unveils-spectrum-xgs-ethernet-for-ai-data-centers-3f6d4a2fe0e4", "label": "OneZero 报道" }
+            { "url": "https://www.servethehome.com/nvidia-spectrum-xgs-announced-for-multi-dc-ai-ethernet-networks/", "label": "ServeTheHome 报道" }
           ],
-          "whyCN": "跨数据中心以太方案有望成为大规模 AI 训练/推理的新网络基建选项。",
-          "whyEN": "Signals Ethernet-based, multi-DC fabrics as a contender for large-scale AI networking."
+          "whyCN": "以太网方案加码大规模 AI 集群互联，供给侧与架构选型受关注。",
+          "whyEN": "Ethernet-based fabrics advance for large-scale AI, impacting supply and design choices."
         },
         {
-          "title": "微软释出紧急修复 / Microsoft ships OOB reset fix",
+          "title": "GitLab 18.3 发布 / GitLab 18.3 released",
           "factsCN": [
-            "微软针对 8 月补丁导致“重置此电脑/通过 Windows Update 修复”失效问题发布 OOB 修复（KB5066188/KB5066189）；并确认 NDI 流媒体性能回退为已知问题。"
+            "GitLab 发布 18.3，带来移动合并、内置加载测试等增强；包含多项修复与改进。"
           ],
           "factsEN": [
-            "Microsoft issued out-of-band fixes (KB5066188/KB5066189) for Reset/Recovery failures from the August update, and acknowledged NDI streaming performance regressions as a known issue."
+            "GitLab 18.3 shipped with enhancements like mobile merges and load testing, plus various fixes."
           ],
           "keyInfo": {
-            "timeSGT": "2025-08-19",
-            "actor": "Microsoft",
-            "market": "Windows 10/11 客户端",
-            "impact": "功能回退 + OOB 修复"
+            "timeSGT": "2025-08-21",
+            "actor": "GitLab",
+            "market": "DevOps/SCM",
+            "impact": "次要版本更新"
           },
           "image": {
-            "src": "https://learn.microsoft.com/en-us/windows/release-health/images/windows-logo.png",
-            "caption": "微软发布 OOB 修复并记录 NDI 已知问题",
-            "credit": "Microsoft",
-            "href": "https://support.microsoft.com/en-us/topic/august-12-2025-kb5063709-os-builds-19044-6216-and-19045-6216-96d99cf6-f8b5-4798-9892-4e3eb8f11548"
+            "src": "https://about.gitlab.com/images/press/logo/jpg/gitlab-logo-gray-rgb.jpg",
+            "caption": "GitLab 18.3",
+            "credit": "GitLab",
+            "href": "https://about.gitlab.com/releases/2025/08/21/gitlab-18-3-released/"
           },
           "links": [
-            { "url": "https://support.microsoft.com/en-us/topic/august-12-2025-kb5063709-os-builds-19044-6216-and-19045-6216-96d99cf6-f8b5-4798-9892-4e3eb8f11548", "label": "KB5063709（官方：含已知问题）" },
-            { "url": "https://support.microsoft.com/en-us/topic/august-12-2025-kb5063878-os-build-26100-4946-e4b87262-75c8-4fef-9df7-4a18099ee294", "label": "KB5063878（官方：含 NDI 提示）" },
-            { "url": "https://www.bleepingcomputer.com/news/microsoft/microsoft-august-windows-updates-cause-severe-ndi-streaming-issues/", "label": "BleepingComputer 报道" }
+            { "url": "https://about.gitlab.com/releases/2025/08/21/gitlab-18-3-released/", "label": "GitLab 发布公告（官方）" },
+            { "url": "https://docs.gitlab.com/ee/update/", "label": "GitLab 升级指南（官方）" }
           ],
-          "whyCN": "涉及系统重置与内容制作工作流，IT 管理与直播/教育行业需及时跟进修复与临时规避。",
-          "whyEN": "Impacts reset/recovery and NDI workflows—IT and media/education should apply the OOB fix or workarounds."
+          "whyCN": "影响 CI/CD 流水线与团队协作效率，企业版可评估升级收益。",
+          "whyEN": "Affects CI/CD workflows and collaboration; evaluate upgrade benefits for Enterprise."
         },
         {
-          "title": "Zoom 修复高危 Windows 提权漏洞 / Zoom fixes Windows EoP",
+          "title": "GitLab 18.2.4 维护更新 / GitLab 18.2.4 maintenance",
           "factsCN": [
-            "Zoom 公布并修复 Windows 客户端不受信任搜索路径漏洞 CVE-2025-49457（CVSS 9.6）。"
+            "GitLab 发布 18.2.4 维护版本，修复稳定性与功能问题（18.2 系列）。"
           ],
           "factsEN": [
-            "Zoom disclosed and patched Windows untrusted search path issue CVE-2025-49457 (CVSS 9.6)."
+            "GitLab released 18.2.4 maintenance update for stability and functional fixes in the 18.2 series."
           ],
           "keyInfo": {
-            "timeSGT": "2025-08-14",
-            "actor": "Zoom",
-            "market": "Windows 客户端",
-            "impact": "CVE-2025-49457"
+            "timeSGT": "2025-08-18",
+            "actor": "GitLab",
+            "market": "DevOps/SCM",
+            "impact": "维护更新"
+          },
+          "image": {
+            "src": "https://about.gitlab.com/images/press/logo/jpg/gitlab-logo-gray-rgb.jpg",
+            "caption": "GitLab 18.2.4",
+            "credit": "GitLab",
+            "href": "https://about.gitlab.com/releases/2025/08/18/patch-release-18-2-4/"
           },
           "links": [
-            { "url": "https://explore.zoom.us/en/trust/security-bulletin/", "label": "Zoom 安全公告（官方）" },
-            { "url": "https://www.bleepingcomputer.com/", "label": "BleepingComputer 报道" }
+            { "url": "https://about.gitlab.com/releases/2025/08/18/patch-release-18-2-4/", "label": "GitLab 补丁公告（官方）" },
+            { "url": "https://docs.gitlab.com/ee/update/", "label": "GitLab 升级指南（官方）" }
           ],
-          "whyCN": "广泛部署的桌面客户端权限风险，需尽快更新。",
-          "whyEN": "Widely deployed Windows client EoP—urgent patching recommended."
+          "whyCN": "维护版本便于低风险合入，减少停机窗口。",
+          "whyEN": "A low-risk patch release suitable for routine maintenance windows."
+        },
+        {
+          "title": "OpenAI 推出项目级记忆 / OpenAI adds project-only memory",
+          "factsCN": [
+            "OpenAI 在 ChatGPT 发布说明中新增“仅在项目内记忆”功能，默认关闭、需手动开启。"
+          ],
+          "factsEN": [
+            "OpenAI’s ChatGPT release notes introduced project-only memory (opt-in and off by default)."
+          ],
+          "keyInfo": {
+            "timeSGT": "2025-08-22",
+            "actor": "OpenAI",
+            "market": "生成式 AI/生产力",
+            "impact": "新特性（隐私可控）"
+          },
+          "image": {
+            "src": "https://openai.com/content/images/2022/05/openai-avatar.png",
+            "caption": "OpenAI Release Notes",
+            "credit": "OpenAI",
+            "href": "https://help.openai.com/en/articles/6825453-chatgpt-release-notes"
+          },
+          "links": [
+            { "url": "https://help.openai.com/en/articles/6825453-chatgpt-release-notes", "label": "ChatGPT Release Notes（官方）" },
+            { "url": "https://openai.com/policies/privacy-policy", "label": "OpenAI 隐私（官方）" }
+          ],
+          "whyCN": "在团队协作与合规场景中降低跨项目数据记忆的隐私风险。",
+          "whyEN": "Helps limit cross-project memory for privacy-sensitive teamwork."
+        },
+        {
+          "title": "Intel 在 Hot Chips 展示 288 核 Xeon / Intel shows 288-core Xeon",
+          "factsCN": [
+            "Intel 在 Hot Chips 2025 介绍 288 核 Sierra Forest Xeon 细节，主打高密度能效。"
+          ],
+          "factsEN": [
+            "At Hot Chips 2025, Intel disclosed 288-core Sierra Forest Xeon details targeting high-density efficiency."
+          ],
+          "keyInfo": {
+            "timeSGT": "2025-08-24",
+            "actor": "Intel",
+            "market": "数据中心 CPU",
+            "impact": "架构与性能信息公开"
+          },
+          "image": {
+            "src": "https://www.intel.com/etc.clientlibs/settings/wcm/designs/intel/us/en/images/printlogo-black.svg",
+            "caption": "Intel Hot Chips 2025",
+            "credit": "Intel",
+            "href": "https://www.servethehome.com/intel-288-core-xeon-at-hot-chips-2025/"
+          },
+          "links": [
+            { "url": "https://www.servethehome.com/intel-288-core-xeon-at-hot-chips-2025/", "label": "ServeTheHome 报道" },
+            { "url": "https://www.intel.com/content/www/us/en/events/hot-chips.html", "label": "Intel 活动页（官方）" }
+          ],
+          "whyCN": "高核数路线影响 TCO 与算力密度评估，适配云原生与微服务负载。",
+          "whyEN": "High-core-count designs shift TCO and density calculus for cloud-native workloads."
+        },
+        {
+          "title": "Intel 详解 HBM SPD 与缓存策略 / Intel details HBM SPD/cache",
+          "factsCN": [
+            "Intel 在 Hot Chips 介绍 HBM SPD 模型与“自适应感知”缓存路径策略，改善带宽与稳定性。"
+          ],
+          "factsEN": [
+            "Intel shared HBM SPD modeling and ‘adaptive-aware’ cache path strategies to boost bandwidth and stability."
+          ],
+          "keyInfo": {
+            "timeSGT": "2025-08-24",
+            "actor": "Intel",
+            "market": "加速/内存子系统",
+            "impact": "体系结构优化"
+          },
+          "image": {
+            "src": "https://www.intel.com/etc.clientlibs/settings/wcm/designs/intel/us/en/images/printlogo-black.svg",
+            "caption": "Intel Hot Chips 技术要点",
+            "credit": "Intel",
+            "href": "https://www.servethehome.com/the-intel-hbm-spd-and-e-core-hbm-spd-at-hot-chips-2025/"
+          },
+          "links": [
+            { "url": "https://www.servethehome.com/the-intel-hbm-spd-and-e-core-hbm-spd-at-hot-chips-2025/", "label": "ServeTheHome 报道" },
+            { "url": "https://www.intel.com/content/www/us/en/events/hot-chips.html", "label": "Intel 活动页（官方）" }
+          ],
+          "whyCN": "内存与缓存路径优化影响 AI/HPC 实效吞吐与可预测性。",
+          "whyEN": "Memory/cache path strategies matter for sustained throughput and predictability in AI/HPC."
+        },
+        {
+          "title": "Google Pixel 10 系列正式发布 / Google launches Pixel 10 line",
+          "factsCN": [
+            "Google 举办 Pixel 10 发布会，推出 Pixel 10 Pro/XL、降价的 Pixel 10，以及 Pixel Watch 9 与 Pixel Buds Pro 2。"
+          ],
+          "factsEN": [
+            "Google’s Pixel 10 event introduced Pixel 10 Pro/XL, a lower-priced Pixel 10, plus Pixel Watch 9 and Pixel Buds Pro 2."
+          ],
+          "keyInfo": {
+            "timeSGT": "2025-08-20",
+            "actor": "Google",
+            "market": "手机/可穿戴",
+            "impact": "新品发布（多机型）"
+          },
+          "image": {
+            "src": "https://lh3.googleusercontent.com/ogw/AF2bZygWJj8cQw8n4h3k0Fq5d3Zf5aGf0q0a_5wRr5J3=s32-c-mo",
+            "caption": "Made by Google 发布",
+            "credit": "Google",
+            "href": "https://blog.google/products/pixel/google-pixel-10-event-august-2025/"
+          },
+          "links": [
+            { "url": "https://blog.google/products/pixel/google-pixel-10-event-august-2025/", "label": "Google 官方博客" },
+            { "url": "https://store.google.com/gb/product/pixel_10_pro?hl=en-GB", "label": "Google 商店：Pixel 10 Pro" },
+            { "url": "https://9to5google.com/2025/08/20/google-pixel-10-event-recap/", "label": "9to5Google 汇总" }
+          ],
+          "whyCN": "旗舰机型与价格策略调整影响 Android 高端市场竞争格局。",
+          "whyEN": "Flagship specs and pricing reshape competition in the Android high-end segment."
+        },
+        {
+          "title": "Pixel 10 Pro/XL 规格公开 / Pixel 10 Pro/XL specs",
+          "factsCN": [
+            "Google 公布 Pixel 10 Pro/XL 详细规格与价格，搭载最新 Tensor 芯片与多项 AI 功能。"
+          ],
+          "factsEN": [
+            "Google detailed Pixel 10 Pro/XL pricing and specs with the latest Tensor and new AI features."
+          ],
+          "keyInfo": {
+            "timeSGT": "2025-08-20",
+            "actor": "Google",
+            "market": "智能手机",
+            "impact": "旗舰规格与定价"
+          },
+          "image": {
+            "src": "https://store.google.com/us/product/images/phones/hero_pixel_10_pro.jpg",
+            "caption": "Pixel 10 Pro",
+            "credit": "Google Store",
+            "href": "https://store.google.com/gb/product/pixel_10_pro?hl=en-GB"
+          },
+          "links": [
+            { "url": "https://store.google.com/gb/product/pixel_10_pro?hl=en-GB", "label": "Google 商店（官方）" },
+            { "url": "https://www.androidcentral.com/phones/pixel-10-everything-announced", "label": "Android Central 发布会汇总" }
+          ],
+          "whyCN": "参数与定价影响渠道备货与竞品策略，需关注上市节奏。",
+          "whyEN": "Specs/pricing affect channel planning and rival positioning; watch retail timelines."
+        },
+        {
+          "title": "Pixel Watch 9/ Buds Pro 2 发布 / Pixel Watch 9 & Buds Pro 2",
+          "factsCN": [
+            "Google 同场发布 Pixel Watch 9 与 Pixel Buds Pro 2，主打续航与 AI 体验升级。"
+          ],
+          "factsEN": [
+            "Google also launched Pixel Watch 9 and Pixel Buds Pro 2, focusing on battery and AI features."
+          ],
+          "keyInfo": {
+            "timeSGT": "2025-08-20",
+            "actor": "Google",
+            "market": "可穿戴/音频",
+            "impact": "新品发布"
+          },
+          "image": {
+            "src": "https://store.google.com/us/product/images/wearables/pixel_watch_9_hero.jpg",
+            "caption": "Pixel Watch 9",
+            "credit": "Google Store",
+            "href": "https://store.google.com/gb/category/wearables?hl=en-GB"
+          },
+          "links": [
+            { "url": "https://store.google.com/gb/category/wearables?hl=en-GB", "label": "Google 商店（官方）" },
+            { "url": "https://www.androidpolice.com/everything-google-announced-august-2025-pixel-event/", "label": "Android Police 汇总" }
+          ],
+          "whyCN": "生态完善与 AI 协同增强提升用户粘性与溢价能力。",
+          "whyEN": "Stronger device ecosystem and AI tie-ins increase stickiness and pricing power."
+        },
+        {
+          "title": "Google Cloud 推出 DSPM 预览 / Google Cloud DSPM preview",
+          "factsCN": [
+            "Google Cloud 宣布数据安全态势管理（DSPM）预览，覆盖数据发现、分类与风险评估。"
+          ],
+          "factsEN": [
+            "Google Cloud launched a preview of Data Security Posture Management (DSPM) for discovery, classification, and risk."
+          ],
+          "keyInfo": {
+            "timeSGT": "2025-08-20",
+            "actor": "Google Cloud",
+            "market": "云安全",
+            "impact": "新能力（预览）"
+          },
+          "image": {
+            "src": "https://cloud.google.com/images/social-icon-google-cloud-1200-630.png",
+            "caption": "Google Cloud 安全发布",
+            "credit": "Google Cloud",
+            "href": "https://cloud.google.com/blog/products/identity-security/dspm-preview"
+          },
+          "links": [
+            { "url": "https://cloud.google.com/blog/products/identity-security/dspm-preview", "label": "Google Cloud 博客（官方）" },
+            { "url": "https://cloud.google.com/release-notes", "label": "GCP Release Notes（官方）" }
+          ],
+          "whyCN": "帮助解决多数据源敏感数据可见性与合规审计痛点。",
+          "whyEN": "Improves visibility and compliance for sensitive data across clouds."
+        },
+        {
+          "title": "Google Cloud 推出合规管理预览 / Compliance Manager preview",
+          "factsCN": [
+            "Google Cloud 宣布 Compliance Manager 预览版，提供合规模板、证据收集与审计报告生成功能。"
+          ],
+          "factsEN": [
+            "Google Cloud announced Compliance Manager preview with templates, evidence collection, and reporting."
+          ],
+          "keyInfo": {
+            "timeSGT": "2025-08-20",
+            "actor": "Google Cloud",
+            "market": "合规与审计",
+            "impact": "新能力（预览）"
+          },
+          "image": {
+            "src": "https://cloud.google.com/images/social-icon-google-cloud-1200-630.png",
+            "caption": "合规管理预览",
+            "credit": "Google Cloud",
+            "href": "https://cloud.google.com/blog/products/identity-security/introducing-compliance-manager-preview"
+          },
+          "links": [
+            { "url": "https://cloud.google.com/blog/products/identity-security/introducing-compliance-manager-preview", "label": "Google Cloud 博客（官方）" },
+            { "url": "https://cloud.google.com/release-notes", "label": "GCP Release Notes（官方）" }
+          ],
+          "whyCN": "降低合规审计成本，利于受监管行业上云。",
+          "whyEN": "Lowers audit overhead and aids regulated industry adoption."
+        },
+        {
+          "title": "GKE 推出 Auto-IPAM / GKE adds Auto-IPAM",
+          "factsCN": [
+            "GKE 发布 Auto-IPAM，自动为节点与 Pod 规划地址以降低冲突与运维复杂度。"
+          ],
+          "factsEN": [
+            "GKE’s Auto-IPAM automatically plans node/Pod addresses to reduce conflicts and ops complexity."
+          ],
+          "keyInfo": {
+            "timeSGT": "2025-08-20",
+            "actor": "Google Kubernetes Engine",
+            "market": "容器/网络",
+            "impact": "网络自动化新特性"
+          },
+          "image": {
+            "src": "https://cloud.google.com/images/social-icon-google-cloud-1200-630.png",
+            "caption": "GKE 网络能力",
+            "credit": "Google Cloud",
+            "href": "https://cloud.google.com/blog/products/containers-kubernetes/gke-auto-ipam"
+          },
+          "links": [
+            { "url": "https://cloud.google.com/blog/products/containers-kubernetes/gke-auto-ipam", "label": "GKE 官方博客" },
+            { "url": "https://cloud.google.com/release-notes", "label": "GCP Release Notes（官方）" }
+          ],
+          "whyCN": "缓解多集群地址规划与冲突问题，有利规模化落地。",
+          "whyEN": "Eases multi-cluster addressing at scale for production Kubernetes."
+        },
+        {
+          "title": "Workspace CSE 支持 Cloud HSM / Workspace CSE + Cloud HSM",
+          "factsCN": [
+            "Google 宣布 Workspace 客户端加密（CSE）支持采用 Cloud HSM 托管密钥。",
+            "适用于邮件与文档场景的密钥主权与合规需求。"
+          ],
+          "factsEN": [
+            "Google announced Cloud HSM as a key service option for Workspace Client-Side Encryption (CSE),",
+            "supporting key sovereignty and compliance for mail/docs."
+          ],
+          "keyInfo": {
+            "timeSGT": "2025-08-18",
+            "actor": "Google",
+            "market": "云办公/安全",
+            "impact": "CSE 托管密钥选项"
+          },
+          "image": {
+            "src": "https://cloud.google.com/images/social-icon-google-cloud-1200-630.png",
+            "caption": "Workspace CSE 与 Cloud HSM",
+            "credit": "Google",
+            "href": "https://cloud.google.com/blog/products/workspace/workspace-cse-cloud-hsm"
+          },
+          "links": [
+            { "url": "https://cloud.google.com/blog/products/workspace/workspace-cse-cloud-hsm", "label": "Google Cloud 博客（官方）" },
+            { "url": "https://workspace.google.com/security/client-side-encryption/", "label": "Workspace CSE（官方）" }
+          ],
+          "whyCN": "满足主权与监管要求的密钥托管，利于受监管行业使用 CSE。",
+          "whyEN": "Key sovereignty via Cloud HSM broadens regulated adoption of Workspace CSE."
+        },
+        {
+          "title": "Mandiant 分析 CORNFLAKE.V3 / Mandiant on CORNFLAKE.V3",
+          "factsCN": [
+            "Mandiant 报告新版本 CORNFLAKE.V3 后门及其持久化与规避手法。",
+            "建议蓝队根据 IoC 与 TTP 强化检测与响应。"
+          ],
+          "factsEN": [
+            "Mandiant detailed CORNFLAKE.V3 backdoor, persistence and evasion techniques,",
+            "recommending blue teams act on IOCs and TTPs."
+          ],
+          "keyInfo": {
+            "timeSGT": "2025-08-20",
+            "actor": "Google Cloud / Mandiant",
+            "market": "威胁情报",
+            "impact": "新样本与检测建议"
+          },
+          "image": {
+            "src": "https://cloud.google.com/images/social-icon-google-cloud-1200-630.png",
+            "caption": "Mandiant 威胁分析",
+            "credit": "Google Cloud",
+            "href": "https://cloud.google.com/blog/topics/threat-intelligence/cornflake-v3"
+          },
+          "links": [
+            { "url": "https://cloud.google.com/blog/topics/threat-intelligence/cornflake-v3", "label": "Mandiant/GTIG（官方）" },
+            { "url": "https://cloud.google.com/release-notes", "label": "GCP 相关参考（官方）" }
+          ],
+          "whyCN": "有助于完善检测规则与狩猎线索，应尽快合入 SOC 流程。",
+          "whyEN": "Feeds detections and hunting; incorporate indicators into SOC pipelines."
+        },
+        {
+          "title": "Salesloft/Drift 撤销 Salesforce 令牌 / OAuth tokens revoked",
+          "factsCN": [
+            "Google GTIG 报告攻击者滥用 Salesloft Drift 与 Salesforce 集成的 OAuth 令牌大规模导出数据；8 月 20 日 Salesloft 与 Salesforce 撤销相关令牌并下架 AppExchange 应用。"
+          ],
+          "factsEN": [
+            "Google GTIG reported large-scale data exfiltration via Salesloft Drift’s Salesforce OAuth tokens; on Aug 20, Salesloft and Salesforce revoked tokens and removed the app from AppExchange."
+          ],
+          "keyInfo": {
+            "timeSGT": "2025-08-20",
+            "actor": "Salesloft / Salesforce / Google GTIG",
+            "market": "SaaS/CRM",
+            "impact": "OAuth 令牌撤销；取证与复核"
+          },
+          "image": {
+            "src": "https://upload.wikimedia.org/wikipedia/commons/a/a9/Salesforce_logo.svg",
+            "caption": "Salesforce 相关通报",
+            "credit": "Salesforce (logo)",
+            "href": "https://cloud.google.com/blog/topics/threat-intelligence/data-theft-salesforce-instances-via-salesloft-drift"
+          },
+          "links": [
+            { "url": "https://cloud.google.com/blog/topics/threat-intelligence/data-theft-salesforce-instances-via-salesloft-drift", "label": "Google Cloud GTIG（官方）" },
+            { "url": "https://cyberscoop.com/salesforce-salesloft-drift-attack-spree-google/", "label": "CyberScoop 报道" },
+            { "url": "https://champions.salesloft.com/product-updates", "label": "Salesloft 更新/信任门户" }
+          ],
+          "whyCN": "暴露 SaaS-to-SaaS 集成与 OAuth 令牌风险，需加固集成权限与日志审计。",
+          "whyEN": "Underscores OAuth and SaaS-to-SaaS risks; tighten scopes and audit connected apps."
+        },
+        {
+          "title": "Apple 开发者税费/价格更新 / App Store tax/price updates",
+          "factsCN": [
+            "Apple 宣布部分国家/地区的税费与价格调整，涉及加拿大全球等若干市场。"
+          ],
+          "factsEN": [
+            "Apple announced tax and price updates for select countries/regions across the App Store."
+          ],
+          "keyInfo": {
+            "timeSGT": "2025-08-21",
+            "actor": "Apple",
+            "market": "开发者/应用分发",
+            "impact": "税费与定价调整"
+          },
+          "image": {
+            "src": "https://developer.apple.com/assets/elements/icons/apple-developer/apple-developer-128x128_2x.png",
+            "caption": "Apple Developer 通知",
+            "credit": "Apple",
+            "href": "https://developer.apple.com/news/?id=yo2104n5"
+          },
+          "links": [
+            { "url": "https://developer.apple.com/news/?id=yo2104n5", "label": "Apple Developer（官方）" },
+            { "url": "https://9to5mac.com/2025/08/21/apple-details-tax-price-updates/", "label": "9to5Mac 报道" }
+          ],
+          "whyCN": "影响订阅/内购收入结算与本地化定价策略。",
+          "whyEN": "Impacts subscription/IAP revenue and localized pricing strategies."
+        },
+        {
+          "title": "Edge 稳定/扩展稳定通道更新 / Edge Stable/Extended updates",
+          "factsCN": [
+            "微软发布 Edge 稳定与扩展稳定通道更新（含 138/139 系列），并提供安全更新说明。"
+          ],
+          "factsEN": [
+            "Microsoft shipped Edge Stable and Extended Stable updates (v138/139 series) with security notes."
+          ],
+          "keyInfo": {
+            "timeSGT": "2025-08-21",
+            "actor": "Microsoft",
+            "market": "桌面浏览器",
+            "impact": "稳定性与安全修复"
+          },
+          "image": {
+            "src": "https://learn.microsoft.com/en-us/deployedge/images/microsoft-edge-logo-300x300.png",
+            "caption": "Microsoft Edge 更新",
+            "credit": "Microsoft",
+            "href": "https://learn.microsoft.com/en-us/deployedge/microsoft-edge-relnote-stable-channel"
+          },
+          "links": [
+            { "url": "https://learn.microsoft.com/en-us/deployedge/microsoft-edge-relnote-stable-channel", "label": "Edge 稳定通道（官方）" },
+            { "url": "https://learn.microsoft.com/en-us/deployedge/microsoft-edge-relnotes-security", "label": "Edge 安全更新（官方）" },
+            { "url": "https://www.neowin.net/news/edge-139-is-out-with-big-performance-boost-password-improvements-and-more/", "label": "Neowin 报道" }
+          ],
+          "whyCN": "与 Chromium 同步风险窗口，建议与 Chrome 同步更新节奏。",
+          "whyEN": "Aligns with Chromium risk window; keep update cadence in lockstep with Chrome."
         }
       ]
     }
