@@ -6,21 +6,24 @@ import {
 
 /**
  * Monday Weekly — Medium-style archive & post page (single-file React app)
- * - Medium-like UI (Tailwind)
  * - Archive + issue reader (hash routing)
- * - Bilingual facts (CN first, EN second); EN now NOT italic/serif (uses global MapleMono via CSS)
- * - System theme only (no manual switch)
+ * - Bilingual facts (CN first, EN second)
+ * - EN/ASCII font handled globally via CSS (Maple Mono). No italic/serif here.
+ * - System theme only (no manual toggle)
  * - Share button in header; Import/Export behind admin key
  */
 
 const STORAGE_KEY = "monday.weekly.data.v1";
 const THEME_KEY = "mw.theme"; // 'system' | 'light' | 'dark'
 
+/** Format YYYY-MM-DD → Mon DD, YYYY */
 function fmtDate(iso) {
   if (!iso) return "";
   const d = new Date(iso);
   return d.toLocaleDateString("en-SG", { year: "numeric", month: "short", day: "2-digit" });
 }
+
+/** Full datetime (kept for potential use) */
 function fmtDateTime(iso) {
   if (!iso) return "";
   const d = new Date(iso);
@@ -30,6 +33,25 @@ function fmtDateTime(iso) {
     timeZone: "Asia/Singapore"
   });
 }
+
+/** Month & day only, e.g., "Aug 18" */
+function fmtMonthDay(iso) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  return d.toLocaleDateString("en-SG", { month: "short", day: "2-digit" });
+}
+
+/** Month & day + time (kept for potential use) */
+function fmtMonthDayTime(iso) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  return d.toLocaleString("en-SG", {
+    month: "short", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", hour12: false,
+    timeZone: "Asia/Singapore"
+  });
+}
+
 function classNames(...xs) { return xs.filter(Boolean).join(" "); }
 
 // Theme (system only)
@@ -276,8 +298,10 @@ function IssueCard({ issue, onClick }) {
           {issue.title || `${fmtDate(issue.start)} — ${fmtDate(issue.end)}`}
         </h3>
         <div className="flex items-center gap-3 text-xs text-neutral-500 dark:text-neutral-400">
-          <span className="inline-flex items-center gap-1"><Calendar className="h-3.5 w-3.5" /> {fmtDate(issue.start)} — {fmtDate(issue.end)}</span>
-          {issue.publishedAt && <span className="inline-flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> {fmtDateTime(issue.publishedAt)}</span>}
+          <span className="inline-flex items-center gap-1"><Calendar className="h-3.5 w-3.5" /> {fmtMonthDay(issue.start)} — {fmtMonthDay(issue.end)}</span>
+          {issue.publishedAt && (
+            <span className="inline-flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> {fmtMonthDay(issue.publishedAt)}</span>
+          )}
         </div>
         {(issue.summaryCN || issue.summaryEN) && (
           <p className="line-clamp-2 text-[15px] text-neutral-700 dark:text-neutral-300">
@@ -313,8 +337,8 @@ function IssuePage({ issue, onBack }) {
           {issue.title || `${fmtDate(issue.start)} — ${fmtDate(issue.end)} Weekly`}
         </h1>
         <div className="mb-6 flex flex-wrap items-center gap-3 text-sm text-neutral-500 dark:text-neutral-400">
-          <span className="inline-flex items-center gap-1"><Calendar className="h-4 w-4" /> {fmtDate(issue.start)} — {fmtDate(issue.end)}</span>
-          {issue.publishedAt && <span className="inline-flex items-center gap-1"><Clock className="h-4 w-4" /> {fmtDateTime(issue.publishedAt)}</span>}
+          <span className="inline-flex items-center gap-1"><Calendar className="h-4 w-4" /> {fmtMonthDay(issue.start)} — {fmtMonthDay(issue.end)}</span>
+          {issue.publishedAt && <span className="inline-flex items-center gap-1"><Clock className="h-4 w-4" /> {fmtMonthDay(issue.publishedAt)}</span>}
         </div>
         {(issue.summaryCN || issue.summaryEN) && (
           <p className="mb-8 text-[17px] leading-7 text-neutral-800 dark:text-neutral-200">
