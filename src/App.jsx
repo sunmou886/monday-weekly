@@ -408,37 +408,63 @@ function ArchivePage({ issues, q, setQ, openIssue }) {
   );
 }
 
+// ===== BEGIN: REPLACE IssueCard =====
 function IssueCard({ issue, onClick }) {
-  const firstImage = issue.items?.find((i) => i.image?.src)?.image?.src;
+  // 从条目中挑首张可用图（优先 item.image.src → 官方映射 → Clearbit）
+  const firstImgObj = issue.items?.map(pickItemImage).find(i => i && i.src);
+  const cover = firstImgObj?.src || "";
+
   return (
     <article
       onClick={onClick}
       className="group cursor-pointer overflow-hidden rounded-2xl border border-neutral-200 bg-white transition hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900"
     >
       <div className="aspect-[16/9] w-full bg-neutral-100 dark:bg-neutral-800">
-        <CardCover src={firstImage} />
+        {cover ? (
+          <img
+            src={cover}
+            alt="cover"
+            loading="lazy"
+            onError={(e) => { e.currentTarget.style.display = "none"; }}
+            className="h-full w-full object-cover transition group-hover:scale-[1.01]"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center text-neutral-400">No cover</div>
+        )}
       </div>
+
       <div className="space-y-2 p-5">
         <h3 className="line-clamp-2 font-sans font-bold text-lg leading-snug sm:text-xl">
           {issue.title || `${fmtDate(issue.start)} — ${fmtDate(issue.end)}`}
         </h3>
+
         <div className="flex items-center gap-3 text-xs text-neutral-500 dark:text-neutral-400">
           <span className="inline-flex items-center gap-1">
-            <Calendar className="h-3.5 w-3.5" /> {fmtMonthDay(issue.start)} — {fmtMonthDay(issue.end)}
+            <Calendar className="h-3.5 w-3.5" /> {fmtDate(issue.start)} — {fmtDate(issue.end)}
           </span>
         </div>
-        {issue.summaryCN && (
+
+        {(issue.summaryCN || issue.summaryEN) && (
           <p className="line-clamp-2 text-[15px] text-neutral-700 dark:text-neutral-300">
-            <span>{issue.summaryCN}</span>
+            <span>{issue.summaryCN || ""}</span>
+            {issue.summaryEN && (
+              <>
+                <span className="mx-2 text-neutral-400">/</span>
+                <span className="text-[13px] text-neutral-600 dark:text-neutral-400">{issue.summaryEN}</span>
+              </>
+            )}
           </p>
         )}
+
         <div className="pt-2 text-sm text-neutral-500 dark:text-neutral-400">
-          {issue.items?.length || 0} 条
+          {issue.items?.length || 0} items
         </div>
       </div>
     </article>
   );
 }
+// ===== END: REPLACE IssueCard =====
+
 
 // 封面图：懒加载 + 失败回退到占位；不显示破图标
 function CardCover({ src }) {
@@ -516,35 +542,60 @@ function IssuePage({ issue, onBack }) {
   );
 }
 
+// ===== BEGIN: REPLACE ItemBlock =====
 function ItemBlock({ item, idx, isLast }) {
+  const img = pickItemImage(item);
+
   return (
     <section className="space-y-5 sm:space-y-6 py-2">
-      {/* Item title: 1.8rem（正文标题允许中英双语） */}
-      <h2 className="font-sans font-bold leading-snug text-[1.8rem]">
-        <span className="mr-2 text-neutral-400">{String(idx).padStart(2, "0")}</span>
+      {/* 标题 */}
+      <h2 className="font-sans font-bold text-2xl leading-snug">
+        <span className="mr-2 text-neutral-400">{String(idx).padStart(2,'0')}</span>
         {item.title}
       </h2>
 
+      {/* Facts */}
       <div className="space-y-2">
-        {Array.isArray(item.factsCN) &&
-          item.factsCN.map((s, i) => (
-            <p key={`cn-${i}`} className="text-[16px] leading-7 text-neutral-900 dark:text-neutral-100">
-              {s}
-            </p>
-          ))}
-        {Array.isArray(item.factsEN) &&
-          item.factsEN.map((s, i) => (
-            <p key={`en-${i}`} className="text-[14px] leading-7 text-neutral-700 dark:text-neutral-300">
-              {s}
-            </p>
-          ))}
+        {Array.isArray(item.factsCN) && item.factsCN.map((s, i) => (
+          <p key={`cn-${i}`} className="text-[16px] leading-7 text-neutral-900 dark:text-neutral-100">{s}</p>
+        ))}
+        {Array.isArray(item.factsEN) && item.factsEN.map((s, i) => (
+          <p key={`en-${i}`} className="text-[16px] leading-7 text-neutral-900 dark:text-neutral-100">{s}</p>
+        ))}
       </div>
 
-      {/* 图片：懒加载，失败隐藏 */}
-      <ItemImage image={item.image} />
-
+      {/* Key info */}
       {item.keyInfo && <KeyInfoRow info={item.keyInfo} />}
 
+      {/* Image：懒加载；抓不到静默隐藏 */}
+      {img.src && (
+        <figure className="overflow-hidden rounded-2xl border border-neutral-200 dark:border-neutral-800">
+          <a href={img.href || img.src} target="_blank" rel="noreferrer">
+            <img
+              src={img.src}
+              alt={item.image?.alt || "image"}
+              loading="lazy"
+              onError={(e) => { e.currentTarget.style.display = "none"; }}
+              className="w-full object-cover"
+            />
+          </a>
+          {(img.caption || img.credit) && (
+            <figcaption className="flex items-center justify-between gap-3 bg-neutral-50 px-4 py-2 text-xs text-neutral-600 dark:bg-neutral-900 dark:text-neutral-400">
+              <span className="truncate">{img.caption}</span>
+              {img.href && (
+                <a
+                  className="shrink-0 items-center gap-1 text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200"
+                  href={img.href} target="_blank" rel="noreferrer"
+                >
+                  {img.credit} <ExternalLink className="ml-1 inline h-3.5 w-3.5" />
+                </a>
+              )}
+            </figcaption>
+          )}
+        </figure>
+      )}
+
+      {/* Links / Citations */}
       {Array.isArray(item.links) && item.links.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {item.links.map((l, i) => (
@@ -555,21 +606,22 @@ function ItemBlock({ item, idx, isLast }) {
               rel="noreferrer"
               className="inline-flex items-center gap-1 rounded-full border border-neutral-300 px-3 py-1 text-xs hover:bg-neutral-50 dark:border-neutral-600 dark:hover:bg-neutral-800"
             >
-              <LinkIcon className="h-3.5 w-3.5" /> {l.label || "链接"}
+              <LinkIcon className="h-3.5 w-3.5" /> {l.label || "Link"}
             </a>
           ))}
         </div>
       )}
 
+      {/* Why it matters */}
       {(item.whyCN || item.whyEN) && (
         <div className="rounded-xl bg-neutral-50 p-4 text-[15px] text-neutral-800 dark:bg-neutral-900 dark:text-neutral-200">
-          <div className="font-sans font-bold">这为什么重要</div>
+          <div className="font-sans font-bold">这为什么重要 / Why it matters</div>
           {item.whyCN && <p className="mt-1 text-[15px]">{item.whyCN}</p>}
-          {item.whyEN && <p className="text-[13px] text-neutral-600 dark:text-neutral-400">{item.whyEN}</p>}
+          {item.whyEN && <p className="text-[15px]">{item.whyEN}</p>}
         </div>
       )}
 
-      {/* Only between items; last one hidden */}
+      {/* 分割线 */}
       {!isLast && (
         <div className="py-12">
           <hr className="border-neutral-200 dark:border-neutral-800" />
@@ -578,6 +630,8 @@ function ItemBlock({ item, idx, isLast }) {
     </section>
   );
 }
+// ===== END: REPLACE ItemBlock =====
+
 
 // 正文图片：懒加载；加载前隐藏；失败则整体不渲染
 function ItemImage({ image }) {
