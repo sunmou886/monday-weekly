@@ -96,15 +96,15 @@ function saveImgCache(map) {
   try { localStorage.setItem(IMG_CACHE_KEY, JSON.stringify(map)); } catch {}
 }
 
-// 判定：尽量过滤掉 logo/icon 等“标识类”图片
+// filters & scoring to avoid logos/icons
 function isBadExt(u) { return /\.svg(\?|$)/i.test(u) || /\.gif(\?|$)/i.test(u); }
 function isLogoish(u) {
-  const s = u.toLowerCase();
+  const s = (u || "").toLowerCase();
   return /(logo|favicon|icon|sprite|wordmark|lockup|brandmark|badge|avatar|mark)/.test(s);
 }
 function goodExt(u) { return /\.(jpe?g|png|webp|avif)(\?|$)/i.test(u); }
 function scoreImage(u) {
-  const s = u.toLowerCase();
+  const s = (u || "").toLowerCase();
   let sc = 0;
   if (/(hero|featured|feature|article|banner|news|press|upload|uploads|media|images|photo|screenshot|figure|cover)/.test(s)) sc += 10;
   if (goodExt(s)) sc += 5;
@@ -114,7 +114,7 @@ function scoreImage(u) {
   return sc;
 }
 
-// 解析文章页：优先 og/twitter 元标签，再扫 <img> 标签，按打分选最像“文章配图”的那张
+// parse article page for og/twitter images, then <img> tags, score & pick
 async function resolveArticleImage(url) {
   const proxy = toJinaProxy(url);
   if (!proxy) return "";
@@ -128,30 +128,25 @@ async function resolveArticleImage(url) {
   const imgRe  = /<img[^>]+src=["']([^"']+)["'][^>]*>/gi;
 
   const set = new Set();
-
-  // 先收集 og/twitter
   for (const m of html.matchAll(metaRe)) { if (m[1]) set.add(abs(m[1])); }
-  // 再收集页面 <img>
-  for (const m of html.matchAll(imgRe))   { if (m[1]) set.add(abs(m[1])); }
+  for (const m of html.matchAll(imgRe))  { if (m[1]) set.add(abs(m[1])); }
 
   const candidates = [...set]
     .filter(u => !!u)
-    .filter(u => !isBadExt(u))         // 过滤 svg/gif
-    .filter(u => !isLogoish(u));       // 过滤明显 logo
+    .filter(u => !isBadExt(u))
+    .filter(u => !isLogoish(u));
 
   if (!candidates.length) return "";
 
   candidates.sort((a, b) => scoreImage(b) - scoreImage(a));
-  // 若最高分仍很低（大概率是 logo/图标），直接放弃
   if (scoreImage(candidates[0]) < 1) return "";
   return candidates[0];
 }
 
-// 针对一条 item 的最终图片：显式非 logo -> 文章图 -> Unsplash
+// final resolver per item: explicit non-logo -> article image -> Unsplash
 function useResolvedImage(item) {
   const firstUrl = Array.isArray(item?.links) && item.links.length ? item.links[0].url : "";
 
-  // 1) 若 JSON 指定且不像 logo，则直接用
   const initial = () => {
     const s = item?.image?.src || "";
     if (s && !isLogoish(s) && !isBadExt(s)) {
@@ -163,10 +158,8 @@ function useResolvedImage(item) {
   const [img, setImg] = React.useState(initial);
 
   React.useEffect(() => {
-    // 已有显式非 logo 图片，跳过解析
     if (img.src) return;
 
-    // 没有链接：直接用 Unsplash
     if (!firstUrl) {
       setImg({
         src: randomUnsplash(1200, 800),
@@ -177,7 +170,6 @@ function useResolvedImage(item) {
       return;
     }
 
-    // 缓存命中
     const cache = loadImgCache();
     if (cache[firstUrl]) {
       setImg({ src: cache[firstUrl], caption: domainFromUrl(firstUrl), credit: "OG", href: firstUrl });
@@ -187,7 +179,6 @@ function useResolvedImage(item) {
     let alive = true;
     (async () => {
       try {
-        // 2) 解析文章页配图
         const s = await resolveArticleImage(firstUrl);
         if (!alive) return;
         if (s) {
@@ -198,7 +189,6 @@ function useResolvedImage(item) {
         }
       } catch { /* ignore */ }
 
-      // 3) 兜底：Unsplash
       if (alive) {
         setImg({
           src: randomUnsplash(1200, 800),
@@ -216,6 +206,7 @@ function useResolvedImage(item) {
   return img;
 }
 // ===== Image resolving helpers end =====
+
 
 const IMG_CACHE_KEY = "mw.img.cache.v1";
 
