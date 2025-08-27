@@ -422,8 +422,11 @@ function ArchivePage({ issues, q, setQ, openIssue }) {
 // ===== BEGIN: REPLACE IssueCard =====
 function IssueCard({ issue, onClick }) {
   // 从条目中挑首张可用图（优先 item.image.src → 官方映射 → Clearbit）
-  const firstImgObj = issue.items?.map(pickItemImage).find(i => i && i.src);
-  const cover = firstImgObj?.src || "";
+  // 旧：const firstImgObj = issue.items?.map(pickItemImage).find(i => i && i.src);
+// 旧：const cover = firstImgObj?.src || "";
+const firstImgObj = issue.items?.map(pickItemImage).find(i => i && i.src);
+const cover = firstImgObj?.src || randomUnsplash(1280, 720);
+
 
   return (
     <article
