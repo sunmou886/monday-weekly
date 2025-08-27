@@ -138,18 +138,61 @@ export default function MondayWeekly() {
   useSystemThemeOnly();
 
   // Merge remote /content/index.json if present
-  useEffect(() => {
-    (async () => {
-      try {
-        const res = await fetch("/content/index.json", { cache: "no-store" });
-        if (!res.ok) return;
-        const remote = await res.json();
-        if (remote && Array.isArray(remote.issues)) {
-          setData((prev) => ({ issues: mergeIssues(prev?.issues || [], remote.issues) }));
+  // Load remote content:
+// 1) If /content/index.json has {issues:[...]}, merge directly (old mode).
+// 2) If it has {files:[...]}, fetch each /content/<file>.json and merge (weekly files).
+useEffect(() => {
+  (async () => {
+    try {
+      const idx = await fetchJSON('/content/index.json');
+
+      // 模式 A：聚合
+      if (idx && Array.isArray(idx.issues)) {
+        setData(prev => ({ issues: mergeIssues(prev?.issues || [], idx.issues) }));
+        return;
+      }
+
+      // 模式 B：清单
+      if (idx && Array.isArray(idx.files) && idx.files.length) {
+        const urls = idx.files.map(name => `/content/${name}`);
+        const payloads = await Promise.all(
+          urls.map(u => fetchJSON(u).catch(() => null))
+        );
+        const mergedIssues = [];
+        for (const p of payloads) {
+          if (p && Array.isArray(p.issues)) mergedIssues.push(...p.issues);
         }
-      } catch {}
-    })();
-  }, []);
+        if (mergedIssues.length) {
+          setData(prev => ({ issues: mergeIssues(prev?.issues || [], mergedIssues) }));
+        }
+      }
+    } catch {
+      // 没有 index.json 或解析失败，忽略
+    }
+  })();
+}, []);
+
+// 追加：当用户直接访问 #/issue/<id> 且本地还没该周数据时，按需加载 /content/<id>.json
+useEffect(() => {
+  if (route !== 'issue') return;
+  const id = params?.[0];
+  if (!id) return;
+
+  // 已经有这条就不用再拉
+  const exists = (data?.issues || []).some(i => i.id === id);
+  if (exists) return;
+
+  (async () => {
+    try {
+      const payload = await fetchJSON(`/content/${id}.json`);
+      if (payload?.issues?.length) {
+        setData(prev => ({ issues: mergeIssues(prev?.issues || [], payload.issues) }));
+      }
+    } catch {
+      // 单周文件不存在/解析失败，静默忽略即可
+    }
+  })();
+}, [route, params, data, setData]);
 
   const issuesSorted = useMemo(
     () => [...(data?.issues || [])].sort((a, b) => new Date(b.start) - new Date(a.start)),
