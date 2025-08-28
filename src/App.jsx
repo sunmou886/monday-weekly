@@ -508,24 +508,41 @@ function IssueCard({ issue, onClick }) {
   const coverObj = useResolvedImage(firstItem);
   const cover = coverObj.src || randomUnsplash(1280, 720);
 
+  const [loaded, setLoaded] = React.useState(false);
+  // 每当封面地址变化，重置加载状态显示骨架屏
+  React.useEffect(() => { setLoaded(false); }, [coverObj.src]);
+
   return (
     <article
       onClick={onClick}
       className="group cursor-pointer overflow-hidden rounded-2xl border border-neutral-200 bg-white transition hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900"
     >
-      <div className="aspect-[16/9] w-full bg-neutral-100 dark:bg-neutral-800">
+      <div className="relative aspect-[16/9] w-full bg-neutral-100 dark:bg-neutral-800">
+        {/* 骨架屏 */}
+        {!loaded && (
+          <div className="absolute inset-0 animate-pulse rounded-none bg-neutral-200 dark:bg-neutral-700" />
+        )}
+        {/* 图片：加载成功后淡入；失败走回退链 */}
         {cover ? (
           <img
             src={cover}
             alt="cover"
             loading="lazy"
-            onError={(e) => setNextFallback(e.currentTarget, 1280, 720)}
-            className="h-full w-full object-cover transition group-hover:scale-[1.01]"
+            onLoad={() => setLoaded(true)}
+            onError={(e) => {
+              setLoaded(false);
+              setNextFallback(e.currentTarget, 1280, 720);
+            }}
+            className={classNames(
+              "h-full w-full object-cover transition group-hover:scale-[1.01]",
+              loaded ? "opacity-100" : "opacity-0"
+            )}
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center text-neutral-400">No cover</div>
         )}
       </div>
+
       <div className="space-y-2 p-5">
         <h3 className="line-clamp-2 font-sans font-bold text-lg leading-snug sm:text-xl">
           {issue.title || `${fmtMonthDay(issue.start)} — ${fmtMonthDay(issue.end)}`}
@@ -546,11 +563,14 @@ function IssueCard({ issue, onClick }) {
             )}
           </p>
         )}
-        <div className="pt-2 text-sm text-neutral-500 dark:text-neutral-400">{issue.items?.length || 0} items</div>
+        <div className="pt-2 text-sm text-neutral-500 dark:text-neutral-400">
+          {issue.items?.length || 0} items
+        </div>
       </div>
     </article>
   );
 }
+
 
 // -------------------- Issue Page --------------------
 function IssuePage({ issue, onBack }) {
