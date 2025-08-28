@@ -598,6 +598,8 @@ function IssuePage({ issue, onBack }) {
 // -------------------- Item Block --------------------
 function ItemBlock({ item, idx, isLast }) {
   const img = useResolvedImage(item);
+  const firstLinkUrl =
+    (Array.isArray(item.links) && item.links[0] && item.links[0].url) || "";
 
   return (
     <section className="space-y-5 sm:space-y-6 py-2">
@@ -623,13 +625,25 @@ function ItemBlock({ item, idx, isLast }) {
           ))}
       </div>
 
-      {/* Key info */}
+      {/* 关键信息 */}
       {item.keyInfo && <KeyInfoRow info={item.keyInfo} />}
 
-      {/* Image：铺满容器（允许裁剪），固定高 380；懒加载；失败按链路回退 */}
+      {/* 图片：铺满容器（允许裁剪），固定高 380；懒加载；失败按回退链；不显示图片来源说明 */}
       {img.src && (
         <figure className="overflow-hidden rounded-2xl border border-neutral-200 bg-neutral-100 dark:border-neutral-800 dark:bg-neutral-800">
-          <a href={img.href || img.src} target="_blank" rel="noreferrer" className="block">
+          {firstLinkUrl ? (
+            <a href={firstLinkUrl} target="_blank" rel="noreferrer" className="block">
+              <div className="w-full h-[380px]">
+                <img
+                  src={img.src}
+                  alt={item.image?.alt || "image"}
+                  loading="lazy"
+                  onError={(e) => setNextFallback(e.currentTarget, 1200, 800)}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            </a>
+          ) : (
             <div className="w-full h-[380px]">
               <img
                 src={img.src}
@@ -639,26 +653,11 @@ function ItemBlock({ item, idx, isLast }) {
                 className="w-full h-full object-cover"
               />
             </div>
-          </a>
-          {(img.caption || img.credit) && (
-            <figcaption className="flex items-center justify-between gap-3 bg-neutral-50 px-4 py-2 text-xs text-neutral-600 dark:bg-neutral-900 dark:text-neutral-400">
-              <span className="truncate">{img.caption}</span>
-              {img.href && (
-                <a
-                  className="shrink-0 items-center gap-1 text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200"
-                  href={img.href}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  {img.credit} <ExternalLink className="ml-1 inline h-3.5 w-3.5" />
-                </a>
-              )}
-            </figcaption>
           )}
         </figure>
       )}
 
-      {/* Links / Citations */}
+      {/* 文章来源（保持原样显示为按钮/链接） */}
       {Array.isArray(item.links) && item.links.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {item.links.map((l, i) => (
@@ -684,7 +683,7 @@ function ItemBlock({ item, idx, isLast }) {
         </div>
       )}
 
-      {/* Divider */}
+      {/* 分割线 */}
       {!isLast && (
         <div className="py-12">
           <hr className="border-neutral-200 dark:border-neutral-800" />
@@ -693,6 +692,7 @@ function ItemBlock({ item, idx, isLast }) {
     </section>
   );
 }
+
 
 
 function KeyInfoRow({ info }) {
