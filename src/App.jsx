@@ -637,7 +637,6 @@ function IssueCoverMedia({ src, explicitType = "", poster = "", loaded, onLoaded
   );
 }
 
-
 // -------------------- Issue Page --------------------
 function IssuePage({ issue, onBack }) {
   return (
