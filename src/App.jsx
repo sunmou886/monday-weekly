@@ -505,77 +505,42 @@ function ArchivePage({ issues, q, setQ, openIssue }) {
 
 // ====== 替换 IssueCard（支持自定义封面 + 骨架屏 + 图片/视频）======
 function IssueCard({ issue, onClick }) {
-  const firstItem = issue.items?.[0] || {};
+  const coverSrc = issue.cover?.src || "";
+  const coverType = (issue.cover?.type || "").toLowerCase(); // 可省略，按扩展名自动判断
+  const coverPoster = issue.cover?.poster || "";
 
-  // 1) 如果 issue.cover.src 存在，优先用自定义封面
-  const custom = issue.cover?.src || "";
-  const customType = (issue.cover?.type || "").toLowerCase(); // 可为空，后面会自动判断
-  const customPoster = issue.cover?.poster || "";
-
-  // 2) 否则回退到自动解析首条新闻图/Unsplash
-  const autoObj = useResolvedImage(firstItem);
-  const autoSrc = autoObj.src || randomUnsplash(1280, 720);
-
-  const mediaSrc = custom || autoSrc;
   const [loaded, setLoaded] = React.useState(false);
-  React.useEffect(() => { setLoaded(false); }, [mediaSrc]);
+  const [failed, setFailed] = React.useState(false);
+  React.useEffect(() => { setLoaded(false); setFailed(false); }, [coverSrc]);
 
-  // 点击整卡进入该周
   return (
     <article
       onClick={onClick}
       className="group cursor-pointer overflow-hidden rounded-2xl border border-neutral-200 bg-white transition hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900"
     >
       <div className="relative aspect-[16/9] w-full bg-neutral-100 dark:bg-neutral-800">
-        {!loaded && (
+        {/* 骨架屏（只在有封面且未加载/未失败时显示） */}
+        {coverSrc && !loaded && !failed && (
           <div className="absolute inset-0 animate-pulse bg-neutral-200 dark:bg-neutral-700" />
         )}
 
-        <IssueCoverMedia
-          src={mediaSrc}
-          explicitType={customType}
-          poster={customPoster}
-          loaded={loaded}
-          onLoaded={() => setLoaded(true)}
-          onError={(el) => {
-            // 自定义封面失败或自动封面失败 → 退回随机壁纸
-            setLoaded(false);
-            if (el && el.tagName === "VIDEO") {
-              el.poster = "";
-            }
-            // 简单回退：切换到新的随机图
-            const next = randomUnsplash(1280, 720);
-            if (el && el.tagName === "IMG") el.src = next;
-            if (el && el.tagName === "VIDEO") {
-              // 换成 <img> 兜底：直接隐藏视频，由上面骨架→图片再淡入
-              el.style.display = "none";
-              const img = el.closest(".relative")?.querySelector("img[data-fallback]");
-              if (img) {
-                img.src = next;
-                img.style.display = "block";
-              } else {
-                // 动态插入一个兜底图片
-                const container = el.closest(".relative");
-                if (container) {
-                  const imgEl = document.createElement("img");
-                  imgEl.setAttribute("data-fallback", "1");
-                  imgEl.loading = "lazy";
-                  imgEl.src = next;
-                  imgEl.className = "absolute inset-0 w-full h-full object-cover";
-                  imgEl.onload = () => setLoaded(true);
-                  container.appendChild(imgEl);
-                }
-              }
-            }
-          }}
-        />
+        {/* 只用自定义封面；失败则隐藏，不做任何回退 */}
+        {coverSrc && !failed && (
+          <IssueCoverMedia
+            src={coverSrc}
+            explicitType={coverType}
+            poster={coverPoster}
+            loaded={loaded}
+            onLoaded={() => setLoaded(true)}
+            onError={() => setFailed(true)}
+          />
+        )}
       </div>
 
       <div className="space-y-2 p-5">
         <h3 className="line-clamp-2 font-sans font-bold text-lg leading-snug sm:text-xl">
           {issue.title || `${fmtMonthDay(issue.start)} — ${fmtMonthDay(issue.end)}`}
         </h3>
-        {/* 你之前要求：卡片上只显示“月-日” */}
         <div className="flex items-center gap-3 text-xs text-neutral-500 dark:text-neutral-400">
           <span className="inline-flex items-center gap-1">
             <Calendar className="h-3.5 w-3.5" /> {fmtMonthDay(issue.start)} — {fmtMonthDay(issue.end)}
@@ -587,7 +552,9 @@ function IssueCard({ issue, onClick }) {
             {issue.summaryEN && (
               <>
                 <span className="mx-2 text-neutral-400">/</span>
-                <span className="text-[13px] text-neutral-600 dark:text-neutral-400">{issue.summaryEN}</span>
+                <span className="text-[13px] text-neutral-600 dark:text-neutral-400">
+                  {issue.summaryEN}
+                </span>
               </>
             )}
           </p>
@@ -599,14 +566,11 @@ function IssueCard({ issue, onClick }) {
     </article>
   );
 }
-
 // ====== 新增：封面媒体渲染（自动识别 image/video，带淡入）======
 function IssueCoverMedia({ src, explicitType = "", poster = "", loaded, onLoaded, onError }) {
-  const isVideoByExt = /\.(mp4|webm|mov|m4v)(\?|#|$)/i.test(src);
-  const isGif = /\.(gif)(\?|#|$)/i.test(src);
-  const type = explicitType || (isVideoByExt ? "video" : "image");
-
   if (!src) return null;
+  const isVideoByExt = /\.(mp4|webm|mov|m4v)(\?|#|$)/i.test(src);
+  const type = explicitType || (isVideoByExt ? "video" : "image");
 
   if (type === "video") {
     return (
@@ -619,23 +583,24 @@ function IssueCoverMedia({ src, explicitType = "", poster = "", loaded, onLoaded
         autoPlay
         playsInline
         onLoadedData={onLoaded}
-        onError={(e) => onError?.(e.currentTarget)}
+        onError={e => onError?.(e.currentTarget)}
       />
     );
   }
 
-  // image / gif
   return (
     <img
       className={`absolute inset-0 h-full w-full object-cover transition ${loaded ? "opacity-100" : "opacity-0"}`}
       src={src}
       alt="cover"
       loading="lazy"
+      decoding="async"
       onLoad={onLoaded}
-      onError={(e) => onError?.(e.currentTarget)}
+      onError={e => onError?.(e.currentTarget)}
     />
   );
 }
+
 
 // -------------------- Issue Page --------------------
 function IssuePage({ issue, onBack }) {
