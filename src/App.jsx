@@ -626,17 +626,17 @@ function ItemBlock({ item, idx, isLast }) {
       {/* Key info */}
       {item.keyInfo && <KeyInfoRow info={item.keyInfo} />}
 
-      {/* Image：等比、不裁剪、max-h 380；懒加载；失败按链路回退 */}
+      {/* Image：铺满容器（允许裁剪），固定高 380；懒加载；失败按链路回退 */}
       {img.src && (
         <figure className="overflow-hidden rounded-2xl border border-neutral-200 bg-neutral-100 dark:border-neutral-800 dark:bg-neutral-800">
           <a href={img.href || img.src} target="_blank" rel="noreferrer" className="block">
-            <div className="w-full flex items-center justify-center">
+            <div className="w-full h-[380px]">
               <img
                 src={img.src}
                 alt={item.image?.alt || "image"}
                 loading="lazy"
                 onError={(e) => setNextFallback(e.currentTarget, 1200, 800)}
-                className="max-h-[380px] max-w-full w-auto h-auto object-contain"
+                className="w-full h-full object-cover"
               />
             </div>
           </a>
@@ -693,6 +693,7 @@ function ItemBlock({ item, idx, isLast }) {
     </section>
   );
 }
+
 
 function KeyInfoRow({ info }) {
   return (
