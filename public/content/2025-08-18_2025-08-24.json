@@ -4,15 +4,13 @@
       "id": "2025-08-18_2025-08-24",
       "start": "2025-08-18",
       "end": "2025-08-24",
-      "publishedAt": "2025-08-25T10:00:00+08:00",
       "title": "2025-08-18 至 2025-08-24 周报 / Weekly",
-      "summaryCN": "……",
-      "summaryEN": "……",
       "cover": {
-        "src": "/covers/2025-08-18_2025-08-24.gif",
-     
-        
+        "src": "/covers/2025-08-18_2025-08-24.mp4",
+        "type": "video",
+        "poster": "/covers/2025-08-18_2025-08-24.jpg"
       },
+      
       "items": [
         {
           "title": "EU AI Act GPAI 条款生效 / EU AI Act GPAI rules take effect",
