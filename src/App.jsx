@@ -619,7 +619,7 @@ function ItemBlock({ item, idx, isLast }) {
           ))}
         {Array.isArray(item.factsEN) &&
           item.factsEN.map((s, i) => (
-            <p key={`en-${i}`} className="text-[16px] leading-7 text-neutral-900 dark:text-neutral-100">
+            <p key={`en-${i}`} className="text-[16px] leading-7 text-neutral-600 dark:text-neutral-400">
               {s}
             </p>
           ))}
@@ -657,7 +657,7 @@ function ItemBlock({ item, idx, isLast }) {
         </figure>
       )}
 
-      {/* 文章来源（保持原样显示为按钮/链接） */}
+      {/* 文章来源按钮 */}
       {Array.isArray(item.links) && item.links.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {item.links.map((l, i) => (
@@ -692,6 +692,7 @@ function ItemBlock({ item, idx, isLast }) {
     </section>
   );
 }
+
 
 
 
