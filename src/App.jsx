@@ -621,6 +621,10 @@ function ItemBlock({ item, idx, isLast }) {
   const firstLinkUrl =
     (Array.isArray(item.links) && item.links[0] && item.links[0].url) || "";
 
+  // 图片骨架加载状态：每次 src 变化重置为未加载
+  const [loaded, setLoaded] = React.useState(false);
+  React.useEffect(() => { setLoaded(false); }, [img.src]);
+
   return (
     <section className="space-y-5 sm:space-y-6 py-2">
       {/* 条目标题 1.8rem */}
@@ -648,29 +652,43 @@ function ItemBlock({ item, idx, isLast }) {
       {/* 关键信息 */}
       {item.keyInfo && <KeyInfoRow info={item.keyInfo} />}
 
-      {/* 图片：铺满容器（允许裁剪），固定高 380；懒加载；失败按回退链；不显示图片来源说明 */}
+      {/* 图片：铺满容器（裁剪），固定高 380；骨架屏；懒加载；失败按回退链；点击跳第一来源 */}
       {img.src && (
         <figure className="overflow-hidden rounded-2xl border border-neutral-200 bg-neutral-100 dark:border-neutral-800 dark:bg-neutral-800">
           {firstLinkUrl ? (
             <a href={firstLinkUrl} target="_blank" rel="noreferrer" className="block">
-              <div className="w-full h-[380px]">
+              <div className="relative w-full h-[380px]">
+                {!loaded && (
+                  <div className="absolute inset-0 animate-pulse bg-neutral-200 dark:bg-neutral-700" />
+                )}
                 <img
                   src={img.src}
                   alt={item.image?.alt || "image"}
                   loading="lazy"
-                  onError={(e) => setNextFallback(e.currentTarget, 1200, 800)}
-                  className="w-full h-full object-cover"
+                  onLoad={() => setLoaded(true)}
+                  onError={(e) => {
+                    setLoaded(false);
+                    setNextFallback(e.currentTarget, 1200, 800);
+                  }}
+                  className={classNames("w-full h-full object-cover", loaded ? "opacity-100" : "opacity-0")}
                 />
               </div>
             </a>
           ) : (
-            <div className="w-full h-[380px]">
+            <div className="relative w-full h-[380px]">
+              {!loaded && (
+                <div className="absolute inset-0 animate-pulse bg-neutral-200 dark:bg-neutral-700" />
+              )}
               <img
                 src={img.src}
                 alt={item.image?.alt || "image"}
                 loading="lazy"
-                onError={(e) => setNextFallback(e.currentTarget, 1200, 800)}
-                className="w-full h-full object-cover"
+                onLoad={() => setLoaded(true)}
+                onError={(e) => {
+                  setLoaded(false);
+                  setNextFallback(e.currentTarget, 1200, 800);
+                }}
+                className={classNames("w-full h-full object-cover", loaded ? "opacity-100" : "opacity-0")}
               />
             </div>
           )}
@@ -712,6 +730,7 @@ function ItemBlock({ item, idx, isLast }) {
     </section>
   );
 }
+
 
 
 
