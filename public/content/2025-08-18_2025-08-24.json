@@ -7,7 +7,13 @@
       "publishedAt": "2025-08-25T10:00:00+08:00",
       "title": "2025-08-18 至 2025-08-24 周报 / Weekly",
       "summaryCN": "本周聚焦 AI 法规落地、Hot Chips 数据中心网络、Gamescom、航天发射与平台政策等热点。",
-      "summaryEN": "This week: AI rules take effect in the EU, Hot Chips data center networking, Gamescom highlights, launches, and platform policy updates.",
+     "summaryEN": "This week: AI rules take effect in the EU, Hot Chips data center networking, Gamescom highlights, launches, and platform policy updates.",
+     "cover": {
+        "src": "/covers/2025-08-18_2025-08-24.gif",
+        "type": "video",                 // "image" | "video"；可不写，按扩展名自动判断
+        "poster": "/covers/2025-08-18_2025-08-24.jpg"  // 可选：视频封面
+      },
+      
       "items": [
         {
           "title": "EU AI Act GPAI 条款生效 / EU AI Act GPAI rules take effect",
