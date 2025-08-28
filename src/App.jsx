@@ -569,8 +569,14 @@ function IssueCard({ issue, onClick }) {
 // ====== 新增：封面媒体渲染（自动识别 image/video，带淡入）======
 function IssueCoverMedia({ src, explicitType = "", poster = "", loaded, onLoaded, onError }) {
   if (!src) return null;
-  const isVideoByExt = /\.(mp4|webm|mov|m4v)(\?|#|$)/i.test(src);
-  const type = explicitType || (isVideoByExt ? "video" : "image");
+
+  // 更严格的类型判断：.gif 一律按 image 处理
+  const clean = src.split("?")[0].split("#")[0].toLowerCase();
+  const isGif = clean.endsWith(".gif");
+  const isVideoByExt = /\.(mp4|webm|mov|m4v)$/.test(clean);
+
+  // 若显式传了 video 但其实是 .gif，强制改回 image
+  const type = isGif ? "image" : (explicitType || (isVideoByExt ? "video" : "image"));
 
   if (type === "video") {
     return (
@@ -583,7 +589,7 @@ function IssueCoverMedia({ src, explicitType = "", poster = "", loaded, onLoaded
         autoPlay
         playsInline
         onLoadedData={onLoaded}
-        onError={e => onError?.(e.currentTarget)}
+        onError={(e) => onError?.(e.currentTarget)}
       />
     );
   }
@@ -596,7 +602,7 @@ function IssueCoverMedia({ src, explicitType = "", poster = "", loaded, onLoaded
       loading="lazy"
       decoding="async"
       onLoad={onLoaded}
-      onError={e => onError?.(e.currentTarget)}
+      onError={(e) => onError?.(e.currentTarget)}
     />
   );
 }
