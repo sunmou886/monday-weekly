@@ -1,0 +1,267 @@
+{
+  "issues": [
+    {
+      "id": "2025-08-25_2025-08-31",
+      "start": "2025-08-25",
+      "end": "2025-08-31",
+      "publishedAt": "2025-09-01T10:00:00+08:00",
+      "title": "2025-08-25 至 2025-08-31 周报 / Weekly",
+      "summaryCN": "聚焦上周的 AI、航天与设计热点：OpenAI 多项更新、Google 推出 Gemini 2.5 Flash Image、Starship 第10次试飞、威尼斯电影节开幕等。",
+      "summaryEN": "Highlights of last week across AI, space, and design: OpenAI updates, Google’s Gemini 2.5 Flash Image, Starship Flight 10, and the Venice Film Festival opening.",
+      "items": [
+        {
+          "title": "OpenAI 公布与 Anthropic 的安全评估结果",
+          "factsCN": [
+            "OpenAI 发布与 Anthropic 的一次联合安全评估结果，披露在特定约束与测试集下模型行为的风险与缓解建议。"
+          ],
+          "factsEN": [
+            "OpenAI published results from a joint safety evaluation with Anthropic, outlining model risks under constrained tests and recommended mitigations."
+          ],
+          "keyInfo": {
+            "timeSGT": "2025-08-27",
+            "actor": "OpenAI, Anthropic",
+            "market": "基础模型/AI 安全",
+            "impact": "评估结果公开"
+          },
+          "links": [
+            { "url": "https://openai.com/index/sharing-results-from-our-joint-safety-evaluation-with-anthropic/", "label": "OpenAI：联合安全评估结果" },
+            { "url": "https://openai.com/index/", "label": "OpenAI 官方索引（时间线）" }
+          ],
+          "whyCN": "大型模型安全测评正逐步走向行业协作与基准化。",
+          "whyEN": "Signals growing cross-org collaboration and benchmarking in frontier model safety."
+        },
+        {
+          "title": "OpenAI 启动“误用研究”合作计划",
+          "factsCN": [
+            "OpenAI 宣布与多家机构合作研究生成式 AI 的误用途径与防护，成果将用于迭代安全策略与红队基线。"
+          ],
+          "factsEN": [
+            "OpenAI launched a ‘misuse research’ initiative with external partners to study abuse pathways and inform red-teaming and safeguards."
+          ],
+          "keyInfo": {
+            "timeSGT": "2025-08-27",
+            "actor": "OpenAI",
+            "market": "AI 安全/治理",
+            "impact": "研究合作启动"
+          },
+          "links": [
+            { "url": "https://openai.com/index/working-with-organizations-to-evaluate-misuse-risk/", "label": "OpenAI：误用风险合作" },
+            { "url": "https://openai.com/index/", "label": "OpenAI 官方索引（时间线）" }
+          ],
+          "whyCN": "从“单点防御”转向生态协作，有助于应对跨平台的滥用问题。",
+          "whyEN": "A shift from point fixes to ecosystem collaboration against cross-platform misuse."
+        },
+        {
+          "title": "OpenAI 更新 Realtime API 与语音生成",
+          "factsCN": [
+            "OpenAI 发布 Realtime API 更新，增强长时语音合成与低时延互动，并展示耳机原型应用。"
+          ],
+          "factsEN": [
+            "OpenAI announced updates to the Realtime API, improving long-form speech synthesis and low-latency interactions, with an earbud demo."
+          ],
+          "keyInfo": {
+            "timeSGT": "2025-08-28",
+            "actor": "OpenAI",
+            "market": "开发者/语音交互",
+            "impact": "API 能力升级"
+          },
+          "links": [
+            { "url": "https://openai.com/index/updates-to-our-realtime-api-and-speech-capabilities/", "label": "OpenAI：Realtime API 更新" },
+            { "url": "https://openai.com/index/", "label": "OpenAI 官方索引（时间线）" }
+          ],
+          "whyCN": "低时延语音交互是 AI 进入可穿戴与实时场景的关键。",
+          "whyEN": "Low-latency speech moves AI closer to wearables and real-time interfaces."
+        },
+        {
+          "title": "Google 推出 Gemini 2.5 Flash Image",
+          "factsCN": [
+            "Google 推出面向图像生成与编辑的 Gemini 2.5 Flash Image，并在 AI Studio 与 Vertex AI 向开发者提供。"
+          ],
+          "factsEN": [
+            "Google introduced Gemini 2.5 Flash Image for image generation/editing, available via AI Studio and Vertex AI."
+          ],
+          "keyInfo": {
+            "timeSGT": "2025-08-26",
+            "actor": "Google",
+            "market": "生成式 AI/开发者",
+            "impact": "新模型开放使用"
+          },
+          "links": [
+            { "url": "https://aistudio.google.com/app/prompts/new", "label": "Google AI Studio：Gemini 2.5 Flash Image" },
+            { "url": "https://x.com/GoogleAI/status/1828139778802872795", "label": "Google AI 官方公告（X）" }
+          ],
+          "whyCN": "大厂在图像生成赛道持续加速，强化生态入口与开发路径。",
+          "whyEN": "Big-tech image models keep accelerating with tighter dev tooling and entry points."
+        },
+        {
+          "title": "Adobe 将 Gemini 2.5 Flash Image 接入 Firefly/Express",
+          "factsCN": [
+            "Adobe 宣布在 Firefly 与 Express 中支持 Google 的 Gemini 2.5 Flash Image，以扩展图像生成功能与速度。"
+          ],
+          "factsEN": [
+            "Adobe said Gemini 2.5 Flash Image is now supported in Firefly and Express, expanding image generation features and speed."
+          ],
+          "keyInfo": {
+            "timeSGT": "2025-08-26",
+            "actor": "Adobe, Google",
+            "market": "创意工具/生成式 AI",
+            "impact": "跨平台模型整合"
+          },
+          "links": [
+            { "url": "https://blog.adobe.com/en/publish/2025/08/26/gemini-25-flash-image-is-now-in-adobe-firefly-and-adobe-express", "label": "Adobe 博客（官方）" },
+            { "url": "https://aistudio.google.com/app/prompts/new", "label": "Google AI Studio（开发入口）" }
+          ],
+          "whyCN": "创意工作流正走向“多模型后端、统一前端”的产品形态。",
+          "whyEN": "Creative stacks converge toward multi-model backends behind unified front-ends."
+        },
+        {
+          "title": "SpaceX 完成 Starship 第10次飞行试验",
+          "factsCN": [
+            "SpaceX 进行了 Starship 第10次综合飞行测试，窗口开于美国中部时间 8月26日傍晚；属 SGT 8月27日早间时段。"
+          ],
+          "factsEN": [
+            "SpaceX conducted Starship’s 10th integrated flight test with a window opening on Aug 26 CT, corresponding to the morning of Aug 27 SGT."
+          ],
+          "keyInfo": {
+            "timeSGT": "2025-08-27",
+            "actor": "SpaceX",
+            "market": "航天/重型运载",
+            "impact": "重型火箭阶段性验证"
+          },
+          "links": [
+            { "url": "https://x.com/SpaceX/status/1828499883670573195", "label": "SpaceX 官方（X）试飞信息" },
+            { "url": "https://spaceflightnow.com/2025/08/26/starship-flight-10/", "label": "Spaceflight Now 报道" }
+          ],
+          "whyCN": "重型可复用运输是近地与深空任务的关键基础设施。",
+          "whyEN": "Heavy reusable lift underpins higher-cadence LEO and deep-space missions."
+        },
+        {
+          "title": "威尼斯电影节开幕片为《La Grazia》",
+          "factsCN": [
+            "威尼斯电影节官方宣布，保罗·索伦蒂诺新作《La Grazia》作为开幕片，8月27日举行全球首映。"
+          ],
+          "factsEN": [
+            "La Biennale named Paolo Sorrentino’s ‘La Grazia’ the opening film, premiering globally on Aug 27."
+          ],
+          "keyInfo": {
+            "timeSGT": "2025-08-27",
+            "actor": "La Biennale di Venezia",
+            "market": "电影/艺术节",
+            "impact": "开幕片公布"
+          },
+          "links": [
+            { "url": "https://www.labiennale.org/en/news/paolo-sorrentino%E2%80%99s-la-grazia-opening-film-82nd-venice-film-festival", "label": "La Biennale：开幕片公告" },
+            { "url": "https://www.labiennale.org/en/cinema/2025", "label": "La Biennale：电影节 2025 专页" }
+          ],
+          "whyCN": "头部艺术节的选片导向影响全球创作与发行的市场预期。",
+          "whyEN": "Top-tier festival curation steers global creative and distribution signals."
+        },
+        {
+          "title": "威尼斯电影节宣布主持人与日程节点",
+          "factsCN": [
+            "官方确认 Emanuela Fanelli 主持开闭幕式，开幕夜定于 8月27日，闭幕颁奖于 9月6日。"
+          ],
+          "factsEN": [
+            "La Biennale confirmed Emanuela Fanelli to host opening and closing nights; opening on Aug 27 and awards on Sep 6."
+          ],
+          "keyInfo": {
+            "timeSGT": "2025-08-27",
+            "actor": "La Biennale di Venezia",
+            "market": "电影/艺术节",
+            "impact": "开闭幕信息落实"
+          },
+          "links": [
+            { "url": "https://www.labiennale.org/en/news/emanuela-fanelli-host-opening-and-closing-nights-venezia-82", "label": "La Biennale：主持人公告" },
+            { "url": "https://www.labiennale.org/en/cinema/2025/information", "label": "La Biennale：信息页" }
+          ],
+          "whyCN": "明确的仪式安排与传播资源分配有助于提升开幕关注度。",
+          "whyEN": "Ceremony details focus audience attention and media planning."
+        },
+        {
+          "title": "威尼斯电影节 Sala Web 上线精选片单",
+          "factsCN": [
+            "官方宣布 8月28日起，Sala Web 将展映多部长短片，补充线上可达性。"
+          ],
+          "factsEN": [
+            "La Biennale announced the Sala Web theatre will showcase feature and short films from Aug 28, expanding online access."
+          ],
+          "keyInfo": {
+            "timeSGT": "2025-08-28",
+            "actor": "La Biennale di Venezia",
+            "market": "电影/线上展映",
+            "impact": "线上可达性扩展"
+          },
+          "links": [
+            { "url": "https://www.labiennale.org/en/news/sala-web-theatre-82nd-venice-film-festival", "label": "La Biennale：Sala Web 公告" },
+            { "url": "https://www.labiennale.org/en/cinema/2025", "label": "La Biennale：电影节 2025 专页" }
+          ],
+          "whyCN": "线上展映提升国际观众触达与口碑发酵速度。",
+          "whyEN": "Online screenings broaden reach and accelerate word-of-mouth."
+        },
+        {
+          "title": "威尼斯电影节致敬奖颁予沃纳·赫尔佐格",
+          "factsCN": [
+            "官方宣布终身成就金狮奖授予导演沃纳·赫尔佐格，颁授于 8月27日开幕之夜。"
+          ],
+          "factsEN": [
+            "Werner Herzog received the Golden Lion for Lifetime Achievement, awarded during the Aug 27 opening night."
+          ],
+          "keyInfo": {
+            "timeSGT": "2025-08-27",
+            "actor": "La Biennale di Venezia",
+            "market": "电影/奖项",
+            "impact": "终身成就奖"
+          },
+          "links": [
+            { "url": "https://www.labiennale.org/en/news/werner-herzog-golden-lion-lifetime-achievement", "label": "La Biennale：赫尔佐格金狮" },
+            { "url": "https://www.labiennale.org/en/cinema/2025", "label": "La Biennale：电影节 2025 专页" }
+          ],
+          "whyCN": "致敬奖项是艺术节价值取向与行业记忆的象征。",
+          "whyEN": "Lifetime honors signal curatorial values and industry canon."
+        },
+        {
+          "title": "Figma 在 Buzz 引入 Unsplash 素材流",
+          "factsCN": [
+            "Figma 发布 8月27日更新，Buzz 中接入 Unsplash 素材流，便于快速检索与创作灵感收集（测试期免费）。"
+          ],
+          "factsEN": [
+            "Figma’s Aug 27 release adds Unsplash stock images in Buzz for quick inspiration and search (free while in beta)."
+          ],
+          "keyInfo": {
+            "timeSGT": "2025-08-27",
+            "actor": "Figma",
+            "market": "设计工具/素材",
+            "impact": "素材入口集成"
+          },
+          "links": [
+            { "url": "https://www.figma.com/release-notes/", "label": "Figma：Release Notes（含 2025-08-27）" },
+            { "url": "https://www.figma.com/blog/", "label": "Figma 官方博客入口" }
+          ],
+          "whyCN": "官方整合高质量素材库，降低找图与试错成本。",
+          "whyEN": "Native stock integration reduces search time and iteration cost."
+        },
+        {
+          "title": "FAA 公布航空通信与中断相关公众会议",
+          "factsCN": [
+            "FAA 公告于 8月26日、8月28日举行公众会议，讨论航空通信与中断议题，征求运营方与公众意见。"
+          ],
+          "factsEN": [
+            "The FAA scheduled public meetings on Aug 26 and 28 to gather input on aviation communications and outage issues."
+          ],
+          "keyInfo": {
+            "timeSGT": "2025-08-26",
+            "actor": "FAA",
+            "market": "航空/监管",
+            "impact": "公众会议与意见征集"
+          },
+          "links": [
+            { "url": "https://www.faa.gov/nextgen/gae-cns-outage", "label": "FAA：会议与说明（官方）" },
+            { "url": "https://www.faa.gov/", "label": "FAA 官网" }
+          ],
+          "whyCN": "关键基础设施的稳定性与韧性正被纳入常态化治理与评估。",
+          "whyEN": "Resilience of critical aviation infrastructure is under sustained review."
+        }
+      ]
+    }
+  ]
+}
