@@ -505,8 +505,7 @@ function ArchivePage({ issues, q, setQ, openIssue }) {
 
 // ====== 替换 IssueCard（支持自定义封面 + 骨架屏 + 图片/视频）======
 function IssueCard({ issue, onClick }) {
-  const cover = issue.cover?.src || ""; // 只用你给的封面
-
+  const cover = issue.cover?.src || "";
   return (
     <article onClick={onClick} className="group cursor-pointer overflow-hidden rounded-2xl border border-neutral-200 bg-white transition hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900">
       <div className="aspect-[16/9] w-full bg-neutral-100 dark:bg-neutral-800">
@@ -516,7 +515,7 @@ function IssueCard({ issue, onClick }) {
             alt="cover"
             className="h-full w-full object-cover" // 填充容器
             loading="lazy"
-            onError={(e) => { e.currentTarget.style.display = "none"; }} // 不显示破图标
+            onError={(e) => { e.currentTarget.style.display = 'none'; }} // 不显示破图
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center text-neutral-400">No cover</div>
