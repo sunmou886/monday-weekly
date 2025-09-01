@@ -522,10 +522,6 @@ function IssueCard({ issue, onClick }) {
           <div className="flex h-full w-full items-center justify-center text-neutral-400">No cover</div>
         )}
       </div>
-      {/* …下面不变… */}
-    </article>
-  );
-}
 
 
       <div className="space-y-2 p-5">
