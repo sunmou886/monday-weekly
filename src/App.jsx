@@ -40,6 +40,22 @@ function fmtMonthDay(iso) {
   const d = new Date(iso);
   return d.toLocaleDateString("en-SG", { month: "short", day: "2-digit" });
 }
+
+// 将 cover.src 规范化：
+// - http/https 原样返回
+// - 以 "/" 开头的原样返回
+// - 只有文件名(不含 /) → 前缀 "/covers/"
+// - 清理多重斜杠
+function normalizeCoverSrc(src) {
+  if (!src) return "";
+  const s = String(src).trim();
+  if (/^https?:\/\//i.test(s)) return s;
+  const withSlash = s.startsWith("/")
+    ? s
+    : (s.includes("/") ? "/" + s : "/covers/" + s);
+  return withSlash.replace(/\/{2,}/g, "/");
+}
+
 /** YYYY-MM-DD → "Aug 18, 2025"（备用） */
 function fmtDate(iso) {
   if (!iso) return "";
@@ -503,43 +519,39 @@ function ArchivePage({ issues, q, setQ, openIssue }) {
   );
 }
 
-// ===== BEGIN: REPLACE IssueCard (manual cover only) =====
+// ===== BEGIN: REPLACE IssueCard (manual cover, auto-normalize) =====
 function IssueCard({ issue, onClick }) {
-  // 只读你手动配置的封面，不做任何自动回退
-  const coverSrc = issue?.cover?.src?.trim?.() || "";  // 允许 "/covers/xxx.gif" 或 "/cover-test.gif"
-  const coverType = (issue?.cover?.type || "image").toLowerCase(); // "image" | "video"
+  const raw = issue?.cover?.src || "";
+  const coverSrc = normalizeCoverSrc(raw); // 关键：自动补成 /covers/xxx
+  const ext = coverSrc.split("?")[0].split(".").pop()?.toLowerCase() || "";
+  const isVideo = (issue?.cover?.type || "").toLowerCase() === "video"
+    || ["mp4","webm","mov"].includes(ext);
 
   return (
     <article
       onClick={onClick}
       className="group cursor-pointer overflow-hidden rounded-2xl border border-neutral-200 bg-white transition hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900"
     >
-      <div className="aspect-[16/9] w-full bg-neutral-100 dark:bg-neutral-800 overflow-hidden">
-        {/* 占位骨架 */}
+      <div className="aspect-[16/9] w-full bg-neutral-100 dark:bg-neutral-800 overflow-hidden relative">
+        {/* 骨架屏 */}
         {!coverSrc && (
           <div className="h-full w-full animate-pulse bg-neutral-200/60 dark:bg-neutral-700/50" />
         )}
 
-        {coverSrc && coverType === "video" ? (
+        {coverSrc && isVideo ? (
           <video
             src={coverSrc}
-            className="h-full w-full object-cover"
-            muted
-            loop
-            playsInline
-            autoPlay
-            preload="metadata"
-            onError={(e) => { e.currentTarget.style.display = 'none'; }}
+            className="absolute inset-0 h-full w-full object-cover"
+            muted loop playsInline autoPlay preload="metadata"
+            onError={(e)=>{ e.currentTarget.style.display='none'; }}
           />
         ) : coverSrc ? (
           <img
             src={coverSrc}
             alt="cover"
-            className="h-full w-full object-cover"
-            loading="lazy"
-            decoding="async"
-            referrerPolicy="no-referrer"
-            onError={(e) => { e.currentTarget.style.display = 'none'; }}
+            className="absolute inset-0 h-full w-full object-cover"
+            loading="lazy" decoding="async" referrerPolicy="no-referrer"
+            onError={(e)=>{ e.currentTarget.style.display='none'; }}
           />
         ) : null}
       </div>
@@ -566,6 +578,7 @@ function IssueCard({ issue, onClick }) {
   );
 }
 // ===== END: REPLACE IssueCard =====
+
 
 // ====== 新增：封面媒体渲染（自动识别 image/video，带淡入）======
 function IssueCoverMedia({ src, explicitType = "", poster = "", loaded, onLoaded, onError }) {
