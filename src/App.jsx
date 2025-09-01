@@ -503,25 +503,46 @@ function ArchivePage({ issues, q, setQ, openIssue }) {
   );
 }
 
-// ====== 替换 IssueCard（支持自定义封面 + 骨架屏 + 图片/视频）======
+// ===== BEGIN: REPLACE IssueCard (manual cover only) =====
 function IssueCard({ issue, onClick }) {
-  const cover = issue.cover?.src || "";
-  return (
-    <article onClick={onClick} className="group cursor-pointer overflow-hidden rounded-2xl border border-neutral-200 bg-white transition hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900">
-      <div className="aspect-[16/9] w-full bg-neutral-100 dark:bg-neutral-800">
-        {cover ? (
-          <img
-            src={cover}
-            alt="cover"
-            className="h-full w-full object-cover" // 填充容器
-            loading="lazy"
-            onError={(e) => { e.currentTarget.style.display = 'none'; }} // 不显示破图
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center text-neutral-400">No cover</div>
-        )}
-      </div>
+  // 只读你手动配置的封面，不做任何自动回退
+  const coverSrc = issue?.cover?.src?.trim?.() || "";  // 允许 "/covers/xxx.gif" 或 "/cover-test.gif"
+  const coverType = (issue?.cover?.type || "image").toLowerCase(); // "image" | "video"
 
+  return (
+    <article
+      onClick={onClick}
+      className="group cursor-pointer overflow-hidden rounded-2xl border border-neutral-200 bg-white transition hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900"
+    >
+      <div className="aspect-[16/9] w-full bg-neutral-100 dark:bg-neutral-800 overflow-hidden">
+        {/* 占位骨架 */}
+        {!coverSrc && (
+          <div className="h-full w-full animate-pulse bg-neutral-200/60 dark:bg-neutral-700/50" />
+        )}
+
+        {coverSrc && coverType === "video" ? (
+          <video
+            src={coverSrc}
+            className="h-full w-full object-cover"
+            muted
+            loop
+            playsInline
+            autoPlay
+            preload="metadata"
+            onError={(e) => { e.currentTarget.style.display = 'none'; }}
+          />
+        ) : coverSrc ? (
+          <img
+            src={coverSrc}
+            alt="cover"
+            className="h-full w-full object-cover"
+            loading="lazy"
+            decoding="async"
+            referrerPolicy="no-referrer"
+            onError={(e) => { e.currentTarget.style.display = 'none'; }}
+          />
+        ) : null}
+      </div>
 
       <div className="space-y-2 p-5">
         <h3 className="line-clamp-2 font-sans font-bold text-lg leading-snug sm:text-xl">
@@ -532,17 +553,9 @@ function IssueCard({ issue, onClick }) {
             <Calendar className="h-3.5 w-3.5" /> {fmtMonthDay(issue.start)} — {fmtMonthDay(issue.end)}
           </span>
         </div>
-        {(issue.summaryCN || issue.summaryEN) && (
+        {issue.summaryCN && (
           <p className="line-clamp-2 text-[15px] text-neutral-700 dark:text-neutral-300">
-            <span>{issue.summaryCN || ""}</span>
-            {issue.summaryEN && (
-              <>
-                <span className="mx-2 text-neutral-400">/</span>
-                <span className="text-[13px] text-neutral-600 dark:text-neutral-400">
-                  {issue.summaryEN}
-                </span>
-              </>
-            )}
+            {issue.summaryCN}
           </p>
         )}
         <div className="pt-2 text-sm text-neutral-500 dark:text-neutral-400">
@@ -552,6 +565,8 @@ function IssueCard({ issue, onClick }) {
     </article>
   );
 }
+// ===== END: REPLACE IssueCard =====
+
 // ====== 新增：封面媒体渲染（自动识别 image/video，带淡入）======
 function IssueCoverMedia({ src, explicitType = "", poster = "", loaded, onLoaded, onError }) {
   if (!src) return null;
