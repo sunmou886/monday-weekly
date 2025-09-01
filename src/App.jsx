@@ -505,37 +505,28 @@ function ArchivePage({ issues, q, setQ, openIssue }) {
 
 // ====== 替换 IssueCard（支持自定义封面 + 骨架屏 + 图片/视频）======
 function IssueCard({ issue, onClick }) {
-  const coverSrc = issue.cover?.src || "";
-  const coverType = (issue.cover?.type || "").toLowerCase(); // 可省略，按扩展名自动判断
-  const coverPoster = issue.cover?.poster || "";
-
-  const [loaded, setLoaded] = React.useState(false);
-  const [failed, setFailed] = React.useState(false);
-  React.useEffect(() => { setLoaded(false); setFailed(false); }, [coverSrc]);
+  const cover = issue.cover?.src || ""; // 只用你给的封面
 
   return (
-    <article
-      onClick={onClick}
-      className="group cursor-pointer overflow-hidden rounded-2xl border border-neutral-200 bg-white transition hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900"
-    >
-      <div className="relative aspect-[16/9] w-full bg-neutral-100 dark:bg-neutral-800">
-        {/* 骨架屏（只在有封面且未加载/未失败时显示） */}
-        {coverSrc && !loaded && !failed && (
-          <div className="absolute inset-0 animate-pulse bg-neutral-200 dark:bg-neutral-700" />
-        )}
-
-        {/* 只用自定义封面；失败则隐藏，不做任何回退 */}
-        {coverSrc && !failed && (
-          <IssueCoverMedia
-            src={coverSrc}
-            explicitType={coverType}
-            poster={coverPoster}
-            loaded={loaded}
-            onLoaded={() => setLoaded(true)}
-            onError={() => setFailed(true)}
+    <article onClick={onClick} className="group cursor-pointer overflow-hidden rounded-2xl border border-neutral-200 bg-white transition hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900">
+      <div className="aspect-[16/9] w-full bg-neutral-100 dark:bg-neutral-800">
+        {cover ? (
+          <img
+            src={cover}
+            alt="cover"
+            className="h-full w-full object-cover" // 填充容器
+            loading="lazy"
+            onError={(e) => { e.currentTarget.style.display = "none"; }} // 不显示破图标
           />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center text-neutral-400">No cover</div>
         )}
       </div>
+      {/* …下面不变… */}
+    </article>
+  );
+}
+
 
       <div className="space-y-2 p-5">
         <h3 className="line-clamp-2 font-sans font-bold text-lg leading-snug sm:text-xl">
