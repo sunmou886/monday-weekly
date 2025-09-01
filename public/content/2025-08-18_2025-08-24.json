@@ -5,10 +5,8 @@
       "start": "2025-08-18",
       "end": "2025-08-24",
       "title": "2025-08-18 至 2025-08-24 周报 / Weekly",
-     "cover": {
-  "src": "/covers/2025-08-18_2025-08-24.gif",
-  "type": "image"
-}
+    "cover": { "src": "/cover-test.gif", "type": "image" }
+
 
     }
   ]
