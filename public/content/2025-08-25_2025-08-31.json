@@ -6,8 +6,7 @@
       "end": "2025-08-31",
       "publishedAt": "2025-09-01T10:00:00+08:00",
       "title": "2025-08-25 至 2025-08-31 周报 / Weekly",
-      "summaryCN": "聚焦上周的 AI、航天与设计热点：OpenAI 多项更新、Google 推出 Gemini 2.5 Flash Image、Starship 第10次试飞、威尼斯电影节开幕等。",
-      "summaryEN": "Highlights of last week across AI, space, and design: OpenAI updates, Google’s Gemini 2.5 Flash Image, Starship Flight 10, and the Venice Film Festival opening.",
+      "cover": { "src": "/02.gif", "type": "image" },
       "items": [
         {
           "title": "OpenAI 公布与 Anthropic 的安全评估结果",
