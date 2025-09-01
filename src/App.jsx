@@ -41,20 +41,18 @@ function fmtMonthDay(iso) {
   return d.toLocaleDateString("en-SG", { month: "short", day: "2-digit" });
 }
 
-// 将 cover.src 规范化：
-// - http/https 原样返回
-// - 以 "/" 开头的原样返回
-// - 只有文件名(不含 /) → 前缀 "/covers/"
-// - 清理多重斜杠
+// 只做“最小规范化”
+// - 以 http/https 开头：原样返回
+// - 以 "/" 开头：原样返回
+// - 既不含协议也不含 "/"（纯文件名）：前面补一个 "/"
 function normalizeCoverSrc(src) {
   if (!src) return "";
   const s = String(src).trim();
   if (/^https?:\/\//i.test(s)) return s;
-  const withSlash = s.startsWith("/")
-    ? s
-    : (s.includes("/") ? "/" + s : "/covers/" + s);
-  return withSlash.replace(/\/{2,}/g, "/");
+  if (s.startsWith("/")) return s;
+  return "/" + s;
 }
+
 
 /** YYYY-MM-DD → "Aug 18, 2025"（备用） */
 function fmtDate(iso) {
@@ -522,7 +520,7 @@ function ArchivePage({ issues, q, setQ, openIssue }) {
 // ===== BEGIN: REPLACE IssueCard (manual cover, auto-normalize) =====
 function IssueCard({ issue, onClick }) {
   const raw = issue?.cover?.src || "";
-  const coverSrc = normalizeCoverSrc(raw); // 关键：自动补成 /covers/xxx
+  const coverSrc = normalizeCoverSrc(raw); // 关键：现在仅补根斜杠
   const ext = coverSrc.split("?")[0].split(".").pop()?.toLowerCase() || "";
   const isVideo = (issue?.cover?.type || "").toLowerCase() === "video"
     || ["mp4","webm","mov"].includes(ext);
@@ -532,10 +530,9 @@ function IssueCard({ issue, onClick }) {
       onClick={onClick}
       className="group cursor-pointer overflow-hidden rounded-2xl border border-neutral-200 bg-white transition hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900"
     >
-      <div className="aspect-[16/9] w-full bg-neutral-100 dark:bg-neutral-800 overflow-hidden relative">
-        {/* 骨架屏 */}
+      <div className="relative aspect-[16/9] w-full bg-neutral-100 dark:bg-neutral-800 overflow-hidden">
         {!coverSrc && (
-          <div className="h-full w-full animate-pulse bg-neutral-200/60 dark:bg-neutral-700/50" />
+          <div className="absolute inset-0 animate-pulse bg-neutral-200/60 dark:bg-neutral-700/50" />
         )}
 
         {coverSrc && isVideo ? (
