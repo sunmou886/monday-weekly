@@ -335,6 +335,7 @@ const bootstrapData = {
 
 // -------------------- Root --------------------
 export default function MondayWeekly() {
+  useLightModeOnly();
   const [data, setData] = useLocalData(bootstrapData);
   const [q, setQ] = useState("");
   const { route, params, go } = useHashRouter();
