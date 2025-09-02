@@ -128,3 +128,41 @@ pre { overflow: auto; }
   .no-print { display: none !important; }
   body { background: #fff; color: #000; }
 }
+/* === Amicus theme bridge (强制用变量覆盖 Tailwind 常见色) ============= */
+
+/* 背景：纯色 */
+.bg-white{ background-color: var(--ami-surface) !important; }
+.bg-neutral-50{ background-color: var(--ami-bg-soft-2) !important; }
+.bg-neutral-100{ background-color: var(--ami-bg-soft-1) !important; }
+
+/* 背景：带透明度（关键！覆盖 bg-white/80 等） */
+.bg-white\/80{
+  background-color: color-mix(in srgb, var(--ami-surface) 80%, transparent) !important;
+}
+/* 兼容不支持 color-mix 的浏览器（退化为 0.8 不透明度的白，但至少不会跑偏） */
+@supports not (background-color: color-mix(in srgb, white 50%, black)) {
+  .bg-white\/80{ background-color: rgba(255,255,255,.8) !important; }
+}
+
+/* 文字颜色 */
+.text-neutral-900{ color: var(--ami-text) !important; }
+.text-neutral-800{ color: var(--ami-text-strong) !important; }
+.text-neutral-700{ color: var(--ami-text-strong) !important; }
+.text-neutral-600{ color: var(--ami-muted-1) !important; }
+.text-neutral-500{ color: var(--ami-subtle) !important; }
+.text-neutral-400{ color: var(--ami-muted-2) !important; }
+
+/* 边框/分割线 */
+.border-neutral-200{ border-color: var(--ami-border) !important; }
+.border-neutral-300{ border-color: var(--ami-border) !important; }
+hr{ border-color: var(--ami-border) !important; }
+
+/* 输入占位符、Hover 背景 */
+.placeholder\:text-neutral-400::placeholder{ color: var(--ami-muted-2) !important; }
+.hover\:bg-neutral-50:hover{ background-color: var(--ami-bg-soft-2) !important; }
+
+/* 卡片/信息块浅灰底（如果你在 JSX 用到了） */
+.bg-\[\#F4F6FA\]{ background-color: var(--ami-bg-soft-1) !important; }
+.bg-\[\#F6F7FB\]{ background-color: var(--ami-bg-soft-2) !important; }
+.border-\[\#E6E8EC\]{ border-color: var(--ami-border) !important; }
+.text-\[\#0B0F1A\]{ color: var(--ami-text) !important; }
