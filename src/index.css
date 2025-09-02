@@ -2,6 +2,33 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+/* --- Theme bridge: map Tailwind utility colors to CSS variables --------- */
+/* 背景 */
+.bg-white{ background-color: var(--ami-surface) !important; }
+.bg-neutral-50{ background-color: var(--ami-bg-soft-2) !important; }
+.bg-neutral-100{ background-color: var(--ami-bg-soft-1) !important; }
+
+/* 文字 */
+.text-neutral-900{ color: var(--ami-text) !important; }
+.text-neutral-800{ color: var(--ami-text-strong) !important; }
+.text-neutral-700{ color: var(--ami-text-strong) !important; }
+.text-neutral-600{ color: var(--ami-muted-1) !important; }
+.text-neutral-500{ color: var(--ami-subtle) !important; }
+.text-neutral-400{ color: var(--ami-muted-2) !important; }
+
+/* 边框 / 分隔线 */
+.border-neutral-200{ border-color: var(--ami-border) !important; }
+.border-neutral-300{ border-color: var(--ami-border) !important; }
+
+/* 占位符（搜索框等） */
+.placeholder\:text-neutral-400::placeholder{ color: var(--ami-muted-2) !important; }
+
+/* 悬停背景（按钮等） */
+.hover\:bg-neutral-50:hover{ background-color: var(--ami-bg-soft-2) !important; }
+
+/* <hr> 备份（如果 JSX 里没写变量） */
+hr{ border-color: var(--ami-border) !important; }
+
 
 /* --- Fonts: Maple Mono (ASCII only) ------------------------------------ */
 /* 仅覆盖 ASCII（英文/数字/常用标点），其它文字自动回退到无衬线栈 */
