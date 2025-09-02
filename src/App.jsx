@@ -341,7 +341,6 @@ export default function MondayWeekly() {
   const { route, params, go } = useHashRouter();
   const [showImporter, setShowImporter] = useState(false);
   const isAdmin = useAdmin();
-  useSystemThemeOnly();
 
   // A) /content/index.json 含 {issues:[...]} 直接合并
   // B) /content/index.json 含 {files:[...]} 逐个拉取 /content/<file>.json 合并
