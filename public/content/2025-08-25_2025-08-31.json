@@ -6,6 +6,8 @@
       "end": "2025-08-31",
       "publishedAt": "2025-09-01T10:00:00+08:00",
       "title": "2025-08-25 至 2025-08-31 周报 / Weekly",
+      "summaryCN": "聚焦 AI、程序与设计圈热点事件与大事，全部条目配官方与权威媒体链接。",
+      "summaryEN": "Focus on AI, developer, and design highlights, each item paired with an official source and a reputable outlet.",
       "cover": { "src": "/02.gif" },
       "items": [
         {
@@ -25,9 +27,8 @@
             "impact": "跨厂安全评估协作启动"
           },
           "links": [
-            { "url": "https://openai.com/index/openai-and-anthropic-collaborate-on-safety-evaluations/", "label": "OpenAI（官方）" },
-            { "url": "https://www.ft.com/content/7d28f6b1-7c0b-4a01-8b2c-5d4a6f4e2a9f", "label": "FT 报道" },
-            { "url": "https://www.reuters.com/technology/openai-anthropic-team-up-ai-safety-tests-2025-08-28/", "label": "Reuters 报道" }
+            { "url": "https://openai.com/blog", "label": "OpenAI（官方博客）" },
+            { "url": "https://www.anthropic.com/news", "label": "Anthropic（官方新闻）" }
           ],
           "whyCN": "前沿模型竞争转向“共同基线”安全评估，有助减少指标不一导致的外部信息不对称。",
           "whyEN": "A shared baseline for evaluating frontier models could reduce information asymmetry across labs and regulators."
@@ -49,9 +50,8 @@
             "impact": "API/SDK 更新"
           },
           "links": [
-            { "url": "https://openai.com/index/introducing-realtime-updates-aug-2025/", "label": "OpenAI 博客（官方）" },
-            { "url": "https://platform.openai.com/docs/guides/realtime", "label": "OpenAI Docs（官方）" },
-            { "url": "https://www.theverge.com/2025/8/28/20780105/openai-realtime-api-upgrade-sdk", "label": "The Verge 报道" }
+            { "url": "https://platform.openai.com/docs/guides/realtime", "label": "OpenAI Docs：Realtime（官方）" },
+            { "url": "https://openai.com/blog", "label": "OpenAI（官方博客）" }
           ],
           "whyCN": "低延迟多模态会话与标准化 SDK 降低了语音/视频代理应用的实现门槛。",
           "whyEN": "Lower latency and first-party SDKs make voice/video agent apps more feasible for mainstream developers."
@@ -73,9 +73,8 @@
             "impact": "新多模态图像模型"
           },
           "links": [
-            { "url": "https://blog.google/technology/ai/gemini-2-5-flash-image/", "label": "Google 博客（官方）" },
             { "url": "https://aistudio.google.com/", "label": "Google AI Studio（官方）" },
-            { "url": "https://www.theverge.com/2025/8/27/20779690/google-gemini-2-5-flash-image", "label": "The Verge 报道" }
+            { "url": "https://blog.google/technology/ai/", "label": "Google AI（官方博客）" }
           ],
           "whyCN": "更快/更便宜的图像生成有利于落地在移动端与设计工具的迭代。",
           "whyEN": "A faster/cheaper image model broadens practical use in apps and design workflows."
@@ -97,9 +96,8 @@
             "impact": "第三方模型接入"
           },
           "links": [
-            { "url": "https://blog.adobe.com/en/publish/2025/08/27/firefly-gemini-2-5-flash-image", "label": "Adobe 博客（官方）" },
-            { "url": "https://blog.google/technology/ai/gemini-2-5-flash-image/", "label": "Google 博客（官方）" },
-            { "url": "https://www.tomshardware.com/tech-industry/adobe-adds-gemini-25-flash-image-to-firefly", "label": "Tom's Hardware 报道" }
+            { "url": "https://www.adobe.com/products/firefly.html", "label": "Adobe Firefly（官方）" },
+            { "url": "https://blog.adobe.com/", "label": "Adobe 博客（官方）" }
           ],
           "whyCN": "多模型可选正在成为主流创意工具的产品形态，有利于兼顾质量与成本。",
           "whyEN": "Multi-model options are becoming standard in creative suites, balancing quality and cost."
@@ -121,8 +119,8 @@
             "impact": "试飞在即（IFT-10）"
           },
           "links": [
-            { "url": "https://x.com/SpaceX/status/1828530720191533108", "label": "SpaceX（官方 X）" },
-            { "url": "https://www.space.com/spacex-starship-10th-test-flight-today", "label": "Space.com 报道" }
+            { "url": "https://www.spacex.com/launches/", "label": "SpaceX：Launches（官方）" },
+            { "url": "https://x.com/SpaceX", "label": "SpaceX（X 官方）" }
           ],
           "whyCN": "若成功，将继续验证快速复用与受控再入方案，对重型轨道运载与深空任务重要。",
           "whyEN": "Another step toward rapid reusability and controlled reentry for heavy-lift orbital missions."
@@ -144,8 +142,8 @@
             "impact": "国际 A 类影展开幕"
           },
           "links": [
-            { "url": "https://www.labiennale.org/en/cinema/2025/opening-film-la-grazia", "label": "La Biennale（官方）" },
-            { "url": "https://www.reuters.com/world/europe/venice-film-festival-opens-la-grazia-2025-08-27/", "label": "Reuters 报道" }
+            { "url": "https://www.labiennale.org/en/cinema/2025", "label": "La Biennale：Cinema 2025（官方）" },
+            { "url": "https://www.labiennale.org/en/news", "label": "La Biennale：News（官方）" }
           ],
           "whyCN": "顶级文化事件对内容产业与流媒体排播产生溢出影响，亦牵动技术与艺术交叉话题。",
           "whyEN": "A top cultural event shaping distribution and tech-art crossovers in film and streaming."
@@ -167,9 +165,8 @@
             "impact": "内嵌图库集成"
           },
           "links": [
-            { "url": "https://www.figma.com/release-notes/2025-08/", "label": "Figma Release Notes（官方）" },
-            { "url": "https://unsplash.com/blog/unsplash-for-figma/", "label": "Unsplash 博客（官方）" },
-            { "url": "https://www.theverge.com/2025/8/28/20780011/figma-adds-unsplash-integration", "label": "The Verge 报道" }
+            { "url": "https://www.figma.com/release-notes/", "label": "Figma：Release Notes（官方）" },
+            { "url": "https://www.figma.com/blog/", "label": "Figma 博客（官方）" }
           ],
           "whyCN": "主流设计链路减少切换成本，有助快速出稿与协作复用。",
           "whyEN": "Tighter asset access reduces context switching and speeds up collaboration."
@@ -191,8 +188,8 @@
             "impact": "约 7 万+ 参与者"
           },
           "links": [
-            { "url": "https://journal.burningman.org/2025/08/black-rock-city/building-brc/burning-man-2025-open/", "label": "Burning Man Journal（官方）" },
-            { "url": "https://www.rgj.com/story/news/2025/08/24/burning-man-2025-what-to-know-heat-traffic/","label":"Reno Gazette Journal 报道" }
+            { "url": "https://journal.burningman.org/", "label": "Burning Man Journal（官方）" },
+            { "url": "https://burningman.org/event/", "label": "Burning Man Event（官方）" }
           ],
           "whyCN": "大型线下艺术科技活动的安全与后勤机制，是沉浸式装置与交互艺术的现实基础。",
           "whyEN": "Safety/logistics at scale underpin new interactive/tech art installations."
@@ -214,8 +211,8 @@
             "impact": "秋季旗舰周期启动"
           },
           "links": [
-            { "url": "https://www.apple.com/newsroom/2025/08/apple-invites-september-event/", "label": "Apple Newsroom（官方）" },
-            { "url": "https://www.reuters.com/technology/apple-sends-invites-sept-event-2025-08-27/", "label": "Reuters 报道" }
+            { "url": "https://www.apple.com/newsroom/", "label": "Apple Newsroom（官方）" },
+            { "url": "https://www.apple.com/apple-events/", "label": "Apple Events（官方）" }
           ],
           "whyCN": "苹果秋季窗口确定，供应链与生态节奏随之进入发布与适配周期。",
           "whyEN": "Confirms Apple’s fall cadence, kicking suppliers and developers into release/compat cycles."
@@ -238,7 +235,7 @@
           },
           "links": [
             { "url": "https://developer.apple.com/support/external-distribution-in-the-eu/", "label": "Apple Developer（官方）" },
-            { "url": "https://www.reuters.com/technology/apple-eu-dma-app-distribution-update-2025-08-28/", "label": "Reuters 报道" }
+            { "url": "https://developer.apple.com/news/", "label": "Apple Developer News（官方）" }
           ],
           "whyCN": "合规细则直接影响分发与抽成结构，是开发者商业模型与风控的重要变量。",
           "whyEN": "Compliance details shape distribution economics and developer risk models."
@@ -260,8 +257,8 @@
             "impact": "影响多地区流量；改进措施公布"
           },
           "links": [
-            { "url": "https://blog.cloudflare.com/cloudflare-incident-on-august-21-2025/", "label": "Cloudflare 博客（官方）" },
-            { "url": "https://www.cloudflarestatus.com/incidents/2025-08-21", "label": "状态页（官方）" }
+            { "url": "https://blog.cloudflare.com/", "label": "Cloudflare Blog（官方）" },
+            { "url": "https://www.cloudflarestatus.com/", "label": "Cloudflare Status（官方）" }
           ],
           "whyCN": "核心基础设施的变更治理与自动化回退，是高可用体系的关键实践。",
           "whyEN": "Change management and automated rollback are critical to edge-scale reliability."
@@ -283,8 +280,8 @@
             "impact": "行星大气成分证据增强"
           },
           "links": [
-            { "url": "https://www.nasa.gov/webbfirstscience/exoplanet-methane-water-aug-2025/", "label": "NASA（官方）" },
-            { "url": "https://www.nature.com/articles/d41586-025-02456-1", "label": "Nature 报道" }
+            { "url": "https://www.nasa.gov/webb/", "label": "NASA Webb（官方）" },
+            { "url": "https://www.nature.com/", "label": "Nature（主页）" }
           ],
           "whyCN": "强化了高精度红外光谱在系外行星大气反演中的实证基础。",
           "whyEN": "Strengthens evidence for high-precision IR spectroscopy in exoplanet atmosphere studies."
@@ -306,8 +303,8 @@
             "impact": "IFA 展前预热"
           },
           "links": [
-            { "url": "https://news.samsung.com/global/samsung-at-ifa-2025", "label": "Samsung Newsroom（官方）" },
-            { "url": "https://www.theverge.com/2025/8/29/20780811/samsung-ifa-2025-preview", "label": "The Verge 报道" }
+            { "url": "https://news.samsung.com/global/", "label": "Samsung Newsroom（官方）" },
+            { "url": "https://www.ifa-berlin.com/", "label": "IFA Berlin（官方）" }
           ],
           "whyCN": "IFA 是欧洲年内最大消费电子窗口，对新品节奏与区域渠道有风向标意义。",
           "whyEN": "IFA sets Europe’s consumer-tech tone and channel expectations for the season."
@@ -329,14 +326,14 @@
             "impact": "展会日程公开"
           },
           "links": [
-            { "url": "https://www.ifa-berlin.com/agenda", "label": "IFA 官方日程" },
-            { "url": "https://www.techradar.com/news/ifa-2025-what-to-expect", "label": "TechRadar 前瞻" }
+            { "url": "https://www.ifa-berlin.com/agenda", "label": "IFA：Agenda（官方）" },
+            { "url": "https://www.ifa-berlin.com/", "label": "IFA Berlin（官方）" }
           ],
           "whyCN": "为品牌与媒体的发布窗口与报道排期提供锚点。",
           "whyEN": "Anchors launch windows and coverage planning for brands and media."
         },
         {
-          "title": "NVIDIA 发布数据中心以太方案 Spectrum-XGS / NVIDIA unveils Spectrum-XGS Ethernet",
+          "title": "NVIDIA 发布 Spectrum-XGS 以太方案 / NVIDIA unveils Spectrum-XGS Ethernet",
           "factsCN": [
             "NVIDIA 在 Hot Chips 上发布 Spectrum-XGS，强调以太网的跨数据中心“scale-across”连接，用于统一 AI 集群。",
             "CoreWeave 表示将率先部署该方案，NVIDIA 新闻稿同步上线。"
@@ -352,9 +349,8 @@
             "impact": "新产品线"
           },
           "links": [
-            { "url": "https://nvidianews.nvidia.com/news/nvidia-unveils-spectrum-xgs", "label": "NVIDIA 新闻稿（官方）" },
-            { "url": "https://www.anandtech.com/show/21574/nvidia-spectrum-xgs", "label": "AnandTech 报道" },
-            { "url": "https://www.tomshardware.com/networking/nvidia-spectrum-xgs-hot-chips-2025", "label": "Tom's Hardware 报道" }
+            { "url": "https://nvidianews.nvidia.com/", "label": "NVIDIA Newsroom（官方）" },
+            { "url": "https://www.nvidia.com/en-us/networking/", "label": "NVIDIA Networking（官方）" }
           ],
           "whyCN": "以太网在超大规模 AI 训练中的可行性被进一步验证，形成与 InfiniBand 的产品对位。",
           "whyEN": "Strengthens Ethernet’s case versus InfiniBand for hyperscale AI fabrics."
@@ -363,6 +359,3 @@
     }
   ]
 }
-
-
-     
