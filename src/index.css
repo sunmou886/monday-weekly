@@ -37,22 +37,22 @@
 
   /* —— Amicus 亮色主题变量（改这些值就能全站换色） —— */
   /* 基础 */
-  --ami-bg:        #FAFAFC; /* 页面背景 */
+  --ami-bg:        #F8F8F7; /* 页面背景 */
   --ami-surface:   #FFFFFF; /* 卡片/浮层/输入框 */
   --ami-border:    #E6E8EC; /* 边框/分割线 */
-  --ami-text:      #0B0F1A; /* 正文主文案 */
-  --ami-subtle:    #6B7280; /* 次要说明文字 */
-  --ami-accent:    #1F6FEB; /* 主题色（按钮/链接 hover） */
+  --ami-text:      #1A1A19; /* 正文主文案 */
+  --ami-subtle:    #6E6D68; /* 次要说明文字 */
+  --ami-accent:    #000000; /* 主题色（按钮/链接 hover） */
 
   /* 中性色阶（更细分层，可按需调整） */
-  --ami-text-strong: #111827; /* 略深的标题/摘要 */
-  --ami-muted-1:     #9097A6; /* 英文副文/较浅说明 */
-  --ami-muted-2:     #9AA1AF; /* 分隔符/弱提示 */
+  --ami-text-strong: #1A1A19; /* 略深的标题/摘要 */
+  --ami-muted-1:     #A4A3A1; /* 英文副文/较浅说明 */
+  --ami-muted-2:     #A4A3A1; /* 分隔符/弱提示 */
   --ami-muted-3:     #A0A6B4; /* 占位/无图提示 */
   --ami-muted-4:     #B6BCC9; /* 序号/极弱信息 */
 
   /* 背景层次 & 骨架屏 */
-  --ami-bg-soft-1: #F4F6FA; /* 封面灰底 */
+  --ami-bg-soft-1: #FFFFFF; /* 封面灰底 */
   --ami-bg-soft-2: #F6F7FB; /* hover 背景/信息块 */
   --ami-skeleton:  #EDEFF4; /* 骨架屏 */
 
