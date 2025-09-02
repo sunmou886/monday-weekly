@@ -13,7 +13,7 @@
   font-weight: 400;
   font-style: normal;
   font-display: swap;
-  /* Basic Latin + General Punctuation + Arrows（可按需精简/扩展） */
+  /* Basic Latin + General Punctuation + Arrows */
   unicode-range: U+0000-00FF, U+2000-206F, U+2190-21FF;
 }
 @font-face {
@@ -35,39 +35,66 @@
   --stack-latin-mono: "MapleMonoAscii", ui-monospace, SFMono-Regular, Menlo,
     Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 
-  /* 让浏览器按系统深浅色渲染表单/滚动条等 */
-  color-scheme: light dark;
+  /* —— Amicus 亮色主题变量（改这些值就能全站换色） —— */
+  /* 基础 */
+  --ami-bg:        #FAFAFC; /* 页面背景 */
+  --ami-surface:   #FFFFFF; /* 卡片/浮层/输入框 */
+  --ami-border:    #E6E8EC; /* 边框/分割线 */
+  --ami-text:      #0B0F1A; /* 正文主文案 */
+  --ami-subtle:    #6B7280; /* 次要说明文字 */
+  --ami-accent:    #1F6FEB; /* 主题色（按钮/链接 hover） */
+
+  /* 中性色阶（更细分层，可按需调整） */
+  --ami-text-strong: #111827; /* 略深的标题/摘要 */
+  --ami-muted-1:     #9097A6; /* 英文副文/较浅说明 */
+  --ami-muted-2:     #9AA1AF; /* 分隔符/弱提示 */
+  --ami-muted-3:     #A0A6B4; /* 占位/无图提示 */
+  --ami-muted-4:     #B6BCC9; /* 序号/极弱信息 */
+
+  /* 背景层次 & 骨架屏 */
+  --ami-bg-soft-1: #F4F6FA; /* 封面灰底 */
+  --ami-bg-soft-2: #F6F7FB; /* hover 背景/信息块 */
+  --ami-skeleton:  #EDEFF4; /* 骨架屏 */
+
+  /* 只保留亮色 */
+  color-scheme: light;
 }
 
-/* 让英文/数字优先走 MapleMono；非 ASCII 自动回退无衬线 */
+/* —— 全站字体：ASCII 用 MapleMono，其余无衬线 —— */
 html, body, * { font-family: var(--stack-latin-mono), var(--stack-sans); }
 
-/* 字重/抗锯齿优化（跨平台更一致） */
-html {
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
-}
+/* —— 基础色绑定：不改 JS 也能马上看到换色 —— */
+html, body { background: var(--ami-bg); color: var(--ami-text); }
+hr { border-color: var(--ami-border); }
 
-/* --- Medium-like, small polish ----------------------------------------- */
-/* 链接下划线观感更稳 */
-a { text-underline-offset: 2px; }
-.dark a { text-decoration-color: rgba(255,255,255,.55); }
+/* 链接与交互（轻度强调） */
+a { text-underline-offset: 2px; color: inherit; }
+a:hover { color: var(--ami-accent); }
 
-/* 选中文本高亮（浅/深色） */
+/* 选中文本高亮（仅亮色） */
 ::selection { background: rgba(0,0,0,.12); color: inherit; }
-.dark ::selection { background: rgba(255,255,255,.18); color: inherit; }
 
 /* 媒体元素通用约束 */
 img, svg, video, canvas { max-width: 100%; height: auto; }
 
-/* 分割线配合组件层的 py-12；这里仅兜底颜色 */
-hr { border-color: #e5e7eb; }           /* neutral-200 */
-.dark hr { border-color: #262626; }     /* neutral-800 */
-
 /* 表格/代码块等（如有）的小优化 */
 pre, code, kbd, samp { font-family: var(--stack-latin-mono), monospace; }
 pre { overflow: auto; }
+
+/* 骨架屏（若你的组件用了相关 class，可直接套） */
+@keyframes ami-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.ami-skeleton {
+  background: linear-gradient(90deg,
+    var(--ami-skeleton) 0%,
+    #f8f9fc 20%,
+    var(--ami-skeleton) 40%
+  );
+  background-size: 200% 100%;
+  animation: ami-shimmer 1.2s infinite linear;
+}
 
 /* 打印兜底（不影响屏幕显示） */
 @media print {
