@@ -22,6 +22,24 @@ import {
  * - Header 右侧“分享”；导入/导出仅管理员可见（?key=...）
  * - 图片：先占位（Unsplash），后台解析文章配图；无法获取则按链路回退；懒加载；失败隐藏
  */
+// —— 强制亮色：移除 .dark，并阻止系统切换触发深色 ——
+function useLightModeOnly() {
+  React.useEffect(() => {
+    const root = document.documentElement;
+    const strip = () => root.classList.remove('dark');
+    strip(); // 立即去掉 .dark
+    // 如果之前有监听系统色彩模式变化，确保再变更时依然去掉 .dark
+    const mql = window.matchMedia('(prefers-color-scheme: dark)');
+    try {
+      mql.addEventListener('change', strip);
+      return () => mql.removeEventListener('change', strip);
+    } catch {
+      // Safari 旧版 fallback
+      mql.addListener?.(strip);
+      return () => mql.removeListener?.(strip);
+    }
+  }, []);
+}
 
 const STORAGE_KEY = "monday.weekly.data.v1";
 const THEME_KEY = "mw.theme"; // 'system' | 'light' | 'dark'
