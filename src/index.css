@@ -1,37 +1,9 @@
-/* --- Tailwind runtime --------------------------------------------------- */
+/* --- Tailwind runtime (必须在文件顶部) ---------------------------------- */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-/* --- Theme bridge: map Tailwind utility colors to CSS variables --------- */
-/* 背景 */
-.bg-white{ background-color: var(--ami-surface) !important; }
-.bg-neutral-50{ background-color: var(--ami-bg-soft-2) !important; }
-.bg-neutral-100{ background-color: var(--ami-bg-soft-1) !important; }
 
-/* 文字 */
-.text-neutral-900{ color: var(--ami-text) !important; }
-.text-neutral-800{ color: var(--ami-text-strong) !important; }
-.text-neutral-700{ color: var(--ami-text-strong) !important; }
-.text-neutral-600{ color: var(--ami-muted-1) !important; }
-.text-neutral-500{ color: var(--ami-subtle) !important; }
-.text-neutral-400{ color: var(--ami-muted-2) !important; }
-
-/* 边框 / 分隔线 */
-.border-neutral-200{ border-color: var(--ami-border) !important; }
-.border-neutral-300{ border-color: var(--ami-border) !important; }
-
-/* 占位符（搜索框等） */
-.placeholder\:text-neutral-400::placeholder{ color: var(--ami-muted-2) !important; }
-
-/* 悬停背景（按钮等） */
-.hover\:bg-neutral-50:hover{ background-color: var(--ami-bg-soft-2) !important; }
-
-/* <hr> 备份（如果 JSX 里没写变量） */
-hr{ border-color: var(--ami-border) !important; }
-
-
-/* --- Fonts: Maple Mono (ASCII only) ------------------------------------ */
-/* 仅覆盖 ASCII（英文/数字/常用标点），其它文字自动回退到无衬线栈 */
+/* --- Fonts: Maple Mono (仅覆盖 ASCII；其它文字回退到无衬线) -------------- */
 @font-face {
   font-family: "MapleMonoAscii";
   src:
@@ -54,7 +26,7 @@ hr{ border-color: var(--ami-border) !important; }
   unicode-range: U+0000-00FF, U+2000-206F, U+2190-21FF;
 }
 
-/* --- Global font stacks ------------------------------------------------- */
+/* --- Global font stacks -------------------------------------------------- */
 :root{
   --stack-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
     "Helvetica Neue", Arial, "Noto Sans", "PingFang SC", "Hiragino Sans GB",
@@ -62,35 +34,35 @@ hr{ border-color: var(--ami-border) !important; }
   --stack-latin-mono: "MapleMonoAscii", ui-monospace, SFMono-Regular, Menlo,
     Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 
-  /* —— Amicus 亮色主题变量（改这些值就能全站换色） —— */
+  /* —— Amicus 亮色主题变量（改这些值即可全站换色） —— */
   /* 基础 */
   --ami-bg:        #F8F8F7; /* 页面背景 */
   --ami-surface:   #FFFFFF; /* 卡片/浮层/输入框 */
   --ami-border:    #E6E8EC; /* 边框/分割线 */
   --ami-text:      #1A1A19; /* 正文主文案 */
   --ami-subtle:    #6E6D68; /* 次要说明文字 */
-  --ami-accent:    #000000; /* 主题色（按钮/链接 hover） */
+  --ami-accent:    #000000; /* 主题强调色（按钮/链接 hover） */
 
-  /* 中性色阶（更细分层，可按需调整） */
-  --ami-text-strong: #1A1A19; /* 略深的标题/摘要 */
+  /* 扩展灰阶（用于更细的层次） */
+  --ami-text-strong: #1A1A19; /* 标题/摘要 */
   --ami-muted-1:     #A4A3A1; /* 英文副文/较浅说明 */
   --ami-muted-2:     #A4A3A1; /* 分隔符/弱提示 */
   --ami-muted-3:     #A0A6B4; /* 占位/无图提示 */
   --ami-muted-4:     #B6BCC9; /* 序号/极弱信息 */
 
   /* 背景层次 & 骨架屏 */
-  --ami-bg-soft-1: #FFFFFF; /* 封面灰底 */
+  --ami-bg-soft-1: #FFFFFF; /* 内容浅底 */
   --ami-bg-soft-2: #F6F7FB; /* hover 背景/信息块 */
-  --ami-skeleton:  #EDEFF4; /* 骨架屏 */
+  --ami-skeleton:  #EDEFF4; /* 骨架屏基色 */
 
-  /* 只保留亮色 */
+  /* 只保留亮色（表单/滚动条跟随） */
   color-scheme: light;
 }
 
-/* —— 全站字体：ASCII 用 MapleMono，其余无衬线 —— */
+/* —— 全站字体：ASCII 走 MapleMono，其余自动回退无衬线 —— */
 html, body, * { font-family: var(--stack-latin-mono), var(--stack-sans); }
 
-/* —— 基础色绑定：不改 JS 也能马上看到换色 —— */
+/* —— 基础色绑定（无需改 JS 即可换色） —— */
 html, body { background: var(--ami-bg); color: var(--ami-text); }
 hr { border-color: var(--ami-border); }
 
@@ -104,11 +76,17 @@ a:hover { color: var(--ami-accent); }
 /* 媒体元素通用约束 */
 img, svg, video, canvas { max-width: 100%; height: auto; }
 
-/* 表格/代码块等（如有）的小优化 */
+/* 代码字形 */
 pre, code, kbd, samp { font-family: var(--stack-latin-mono), monospace; }
 pre { overflow: auto; }
 
-/* 骨架屏（若你的组件用了相关 class，可直接套） */
+/* 打印兜底（不影响屏幕显示） */
+@media print {
+  .no-print { display: none !important; }
+  body { background: #fff; color: #000; }
+}
+
+/* --- Skeleton 骨架屏 ---------------------------------------------------- */
 @keyframes ami-shimmer {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
@@ -123,46 +101,47 @@ pre { overflow: auto; }
   animation: ami-shimmer 1.2s infinite linear;
 }
 
-/* 打印兜底（不影响屏幕显示） */
-@media print {
-  .no-print { display: none !important; }
-  body { background: #fff; color: #000; }
+/* --- Amicus 强制配色覆盖（Fallback；保证老的 Tailwind 类也吃到变量色） -- */
+/* 放在文件底部以确保层叠优先级 */
+[class~="bg-white"],
+[class*="bg-white/"]{
+  background-color: var(--ami-surface) !important;
 }
-/* === Amicus theme bridge (强制用变量覆盖 Tailwind 常见色) ============= */
-
-/* 背景：纯色 */
-.bg-white{ background-color: var(--ami-surface) !important; }
-.bg-neutral-50{ background-color: var(--ami-bg-soft-2) !important; }
-.bg-neutral-100{ background-color: var(--ami-bg-soft-1) !important; }
-
-/* 背景：带透明度（关键！覆盖 bg-white/80 等） */
-.bg-white\/80{
+/* 针对 bg-white/80 的更精准半透明效果（支持 color-mix 的浏览器） */
+[class*="bg-white/80"]{
   background-color: color-mix(in srgb, var(--ami-surface) 80%, transparent) !important;
 }
-/* 兼容不支持 color-mix 的浏览器（退化为 0.8 不透明度的白，但至少不会跑偏） */
+/* 降级：不支持 color-mix 的浏览器 */
 @supports not (background-color: color-mix(in srgb, white 50%, black)) {
-  .bg-white\/80{ background-color: rgba(255,255,255,.8) !important; }
+  [class*="bg-white/80"]{ background-color: rgba(255,255,255,.8) !important; }
 }
 
-/* 文字颜色 */
-.text-neutral-900{ color: var(--ami-text) !important; }
-.text-neutral-800{ color: var(--ami-text-strong) !important; }
-.text-neutral-700{ color: var(--ami-text-strong) !important; }
-.text-neutral-600{ color: var(--ami-muted-1) !important; }
-.text-neutral-500{ color: var(--ami-subtle) !important; }
-.text-neutral-400{ color: var(--ami-muted-2) !important; }
+/* 背景：中性色灰阶 */
+[class~="bg-neutral-50"],  [class*="bg-neutral-50"]  { background-color: var(--ami-bg-soft-2) !important; }
+[class~="bg-neutral-100"], [class*="bg-neutral-100"] { background-color: var(--ami-bg-soft-1) !important; }
+
+/* 文字颜色：灰阶到正文 */
+[class~="text-neutral-900"], [class*="text-neutral-900"] { color: var(--ami-text) !important; }
+[class~="text-neutral-800"], [class*="text-neutral-800"] { color: var(--ami-text-strong) !important; }
+[class~="text-neutral-700"], [class*="text-neutral-700"] { color: var(--ami-text-strong) !important; }
+[class~="text-neutral-600"], [class*="text-neutral-600"] { color: var(--ami-muted-1) !important; }
+[class~="text-neutral-500"], [class*="text-neutral-500"] { color: var(--ami-subtle) !important; }
+[class~="text-neutral-400"], [class*="text-neutral-400"] { color: var(--ami-muted-2) !important; }
+[class~="text-neutral-300"], [class*="text-neutral-300"] { color: var(--ami-muted-1) !important; }
 
 /* 边框/分割线 */
-.border-neutral-200{ border-color: var(--ami-border) !important; }
-.border-neutral-300{ border-color: var(--ami-border) !important; }
+[class~="border-neutral-200"], [class*="border-neutral-200"] { border-color: var(--ami-border) !important; }
+[class~="border-neutral-300"], [class*="border-neutral-300"] { border-color: var(--ami-border) !important; }
 hr{ border-color: var(--ami-border) !important; }
 
-/* 输入占位符、Hover 背景 */
-.placeholder\:text-neutral-400::placeholder{ color: var(--ami-muted-2) !important; }
-.hover\:bg-neutral-50:hover{ background-color: var(--ami-bg-soft-2) !important; }
+/* 占位符颜色（搜索框等） */
+[class*="placeholder\:text-neutral-400"]::placeholder{ color: var(--ami-muted-2) !important; }
 
-/* 卡片/信息块浅灰底（如果你在 JSX 用到了） */
-.bg-\[\#F4F6FA\]{ background-color: var(--ami-bg-soft-1) !important; }
-.bg-\[\#F6F7FB\]{ background-color: var(--ami-bg-soft-2) !important; }
-.border-\[\#E6E8EC\]{ border-color: var(--ami-border) !important; }
-.text-\[\#0B0F1A\]{ color: var(--ami-text) !important; }
+/* 悬停浅灰（hover:bg-neutral-50） */
+[class*="hover\:bg-neutral-50"]:hover{ background-color: var(--ami-bg-soft-2) !important; }
+
+/* 如果代码里有硬编码十六进制，顺手兜底（可按需删减） */
+[class*="bg-\\[\\#F4F6FA\\]"]{ background-color: var(--ami-bg-soft-1) !important; }
+[class*="bg-\\[\\#F6F7FB\\]"]{ background-color: var(--ami-bg-soft-2) !important; }
+[class*="border-\\[\\#E6E8EC\\]"]{ border-color: var(--ami-border) !important; }
+[class*="text-\\[\\#0B0F1A\\]"]{ color: var(--ami-text) !important; }
