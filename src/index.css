@@ -60,7 +60,7 @@
   --ami-muted-4:     #B6BCC9; /* 序号/极弱信息 */
 
   /* 背景层次 & 骨架屏 */
-  --ami-bg-soft-1: #FFFFFF; /* 内容浅底 */
+  --ami-bg-soft-1: #EEEEEC; /* 内容浅底 */
   --ami-bg-soft-2: #F3F3F1; /* hover 背景/信息块 */
   --ami-skeleton:  #F3F3F1; /* 骨架屏基色 */
 
