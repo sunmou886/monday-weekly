@@ -48,8 +48,8 @@
   --ami-bg:        #F8F8F7; /* 页面背景 */
   --ami-surface:   #FFFFFF; /* 卡片/浮层/输入框 */
   --ami-border:    #EEEEEA; /* 边框/分割线 */
-  --ami-text:      #1A1A19; /* 正文主文案 */
-  --ami-subtle:    #6E6D68; /* 次要说明文字 */
+  --ami-text:      #36362E; /* 正文主文案 */
+  --ami-subtle:    #7E7E74; /* 次要说明文字 */
   --ami-accent:    #000000; /* 主题强调色（按钮/链接 hover） */
 
   /* 扩展灰阶（用于更细的层次） */
