@@ -395,10 +395,7 @@ function Header({ onImport, data, setData, isAdmin }) {
       <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
         {/* 左侧品牌（内联 Logo） */}
         <a href="#/" className="group inline-flex items-center gap-3">
-          {/* 可选小方块标识：需要可以留，不要可删 */}
-          <div className="rounded-sm bg-black px-2 py-1 text-xs font-semibold tracking-widest text-white">
-            AMI
-          </div>
+         
           {/* 文字 Logo：Amicus（Lily Script One） */}
           <div className="logo-script text-2xl tracking-tight group-hover:opacity-80">
             Amicus
