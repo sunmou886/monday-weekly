@@ -374,12 +374,12 @@ export default function MondayWeekly() {
   );
 }
 
-// ---------- Header ----------
-function Header({ onImport, data, isAdmin }) {
+// Header with Share button（品牌：Amicus，Logo 用 Lily Script One）
+function Header({ onImport, data, setData, isAdmin }) {
   const handleShare = async () => {
     try {
       const url = window.location.href;
-      const title = document.title || "Monday Weekly";
+      const title = document.title || "Amicus";
       const text = "精选且可核验的科技/IT 周报";
       if (navigator.share) {
         await navigator.share({ title, text, url });
@@ -389,36 +389,48 @@ function Header({ onImport, data, isAdmin }) {
       }
     } catch {}
   };
+
   return (
-    <header className="sticky top-0 z-40 border-b border-[var(--ami-border)] bg-white/80 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-neutral-200 bg-white/80 backdrop-blur">
       <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
-        <a href="#/" className="group inline-flex items-center gap-2">
-          <div className="rounded-sm bg-black px-2 py-1 text-xs font-semibold tracking-widest text-white">MON</div>
-          <div className="text-xl font-sans tracking-tight group-hover:opacity-80">Monday Weekly</div>
+        {/* 左侧品牌（内联 Logo） */}
+        <a href="#/" className="group inline-flex items-center gap-3">
+          {/* 可选小方块标识：需要可以留，不要可删 */}
+          <div className="rounded-sm bg-black px-2 py-1 text-xs font-semibold tracking-widest text-white">
+            AMI
+          </div>
+          {/* 文字 Logo：Amicus（Lily Script One） */}
+          <div className="logo-script text-2xl tracking-tight group-hover:opacity-80">
+            Amicus
+          </div>
         </a>
+
+        {/* 右侧按钮 */}
         <div className="flex items-center gap-2">
           <button
             onClick={handleShare}
-            className="inline-flex items-center gap-2 rounded-full border border-[var(--ami-border)] px-3 py-1.5 text-sm hover:bg-[var(--ami-bg-soft-2)]"
+            className="inline-flex items-center gap-2 rounded-full border border-neutral-300 px-3 py-1.5 text-sm hover:bg-neutral-50"
             title="分享"
           >
-            <Share2 className="h-4 w-4" /> 分享
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 12v7a1 1 0 001 1h14a1 1 0 001-1v-7M16 6l-4-4m0 0L8 6m4-4v14"/></svg>
+            分享
           </button>
+
           {isAdmin && (
             <>
               <button
                 onClick={onImport}
-                className="inline-flex items-center gap-2 rounded-full border border-[var(--ami-border)] px-3 py-1.5 text-sm hover:bg-[var(--ami-bg-soft-2)]"
+                className="inline-flex items-center gap-2 rounded-full border border-neutral-300 px-3 py-1.5 text-sm hover:bg-neutral-50"
                 title="导入 JSON"
               >
-                <Upload className="h-4 w-4" /> 导入
+                导入
               </button>
               <button
-                onClick={() => downloadJSON(STORAGE_KEY, data)}
-                className="inline-flex items-center gap-2 rounded-full border border-[var(--ami-border)] px-3 py-1.5 text-sm hover:bg-[var(--ami-bg-soft-2)]"
+                onClick={() => downloadJSON("monday.weekly.data.v1", data)}
+                className="inline-flex items-center gap-2 rounded-full border border-neutral-300 px-3 py-1.5 text-sm hover:bg-neutral-50"
                 title="导出 JSON"
               >
-                <Download className="h-4 w-4" /> 导出
+                导出
               </button>
             </>
           )}
@@ -427,6 +439,7 @@ function Header({ onImport, data, isAdmin }) {
     </header>
   );
 }
+
 
 // ---------- Archive ----------
 function ArchivePage({ issues, q, setQ, openIssue }) {
