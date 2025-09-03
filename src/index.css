@@ -2,6 +2,16 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+/* Google Fonts: Lily Script One for brand logo */
+@import url("https://fonts.googleapis.com/css2?family=Lily+Script+One&display=swap");
+
+/* 专用于 Logo 的字体，覆盖全局 MapleMono */
+.logo-script {
+  font-family: "Lily Script One", var(--stack-sans) !important;
+  font-weight: 400;
+  letter-spacing: .2px;
+}
+
 
 /* --- Fonts: Maple Mono (仅覆盖 ASCII；其它文字回退到无衬线) -------------- */
 @font-face {
