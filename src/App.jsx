@@ -267,6 +267,8 @@ const bootstrapData = {
 
 // ---------- Root ----------
 export default function MondayWeekly() {
+  useEffect(() => { document.title = "Amicus"; }, []);
+
   useLightModeOnly();
 
   const [data, setData] = useLocalData(bootstrapData);
