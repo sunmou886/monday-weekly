@@ -767,7 +767,9 @@ function Footer() {
   return (
     <footer className="border-t border-[var(--ami-border)] py-8">
       <div className="mx-auto flex w-full max-w-5xl flex-col items-start justify-between gap-4 px-4 sm:flex-row sm:items-center sm:px-6 lg:px-8">
-        <div className="text-sm text-[var(--ami-subtle)]">© {new Date().getFullYear()} Monday</div>
+        <div className="text-sm text-neutral-500 dark:text-neutral-400">
+  © {new Date().getFullYear()} Amicus
+</div>
         <div className="text-xs text-[var(--ami-subtle)]">一周热点，周一见</div>
       </div>
     </footer>
