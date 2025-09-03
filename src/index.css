@@ -1,10 +1,9 @@
+/* Logo 字体（Google Fonts） */
+@import url("https://fonts.googleapis.com/css2?family=Lily+Script+One&display=swap");
 /* --- Tailwind runtime (必须在文件顶部) ---------------------------------- */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-/* Google Fonts: Lily Script One for brand logo */
-@import url("https://fonts.googleapis.com/css2?family=Lily+Script+One&display=swap");
-
 /* 专用于 Logo 的字体，覆盖全局 MapleMono */
 .logo-script {
   font-family: "Lily Script One", var(--stack-sans) !important;
@@ -155,3 +154,17 @@ hr{ border-color: var(--ami-border) !important; }
 [class*="bg-\\[\\#F6F7FB\\]"]{ background-color: var(--ami-bg-soft-2) !important; }
 [class*="border-\\[\\#E6E8EC\\]"]{ border-color: var(--ami-border) !important; }
 [class*="text-\\[\\#0B0F1A\\]"]{ color: var(--ami-text) !important; }
+
+/* --- Logo 强制字体覆盖（放在文件最底部保证胜出） ---------------------- */
+.logo-script,
+.logo-script * {
+  font-family: "Lily Script One", var(--stack-sans) !important;
+  font-weight: 400 !important;
+  letter-spacing: 0.2px;
+}
+
+/* 若元素上误用了 font-sans / font-mono 等，也强制覆盖 */
+.logo-script.font-sans,
+.logo-script.font-mono {
+  font-family: "Lily Script One", var(--stack-sans) !important;
+}
