@@ -572,80 +572,48 @@ function IssuePage({ issue, onBack }) {
 }
 
 function ItemBlock({ item, idx, isLast }) {
-  // resolve image for item
-  const resolved = useResolvedImage(item);
-  const [loaded, setLoaded] = useState(false);
-  const firstHref = (Array.isArray(item.links) && item.links[0]?.url) || resolved.href || "#";
+  // 解析正文图片：优先 item.image.src；否则解析第一条链接页；再不行用 Unsplash
+  const resolved = useResolvedImage ? useResolvedImage(item) : { src: item?.image?.src || "", href: item?.links?.[0]?.url || "" };
+  const src = resolved?.src || "";
+  const href = resolved?.href || (Array.isArray(item?.links) && item.links[0]?.url) || "";
 
   return (
     <section className="space-y-5 sm:space-y-6 py-2">
-      {/* Title (1.8rem) */}
-      <h2 className="font-sans font-bold leading-snug text-[1.8rem]">
-        <span className="mr-2 text-[var(--ami-muted-4)]">{String(idx).padStart(2, "0")}</span>
+      {/* 标题 */}
+      <h2 className="font-sans font-bold text-2xl leading-snug">
+        <span className="mr-2 text-neutral-400">{String(idx).padStart(2, "0")}</span>
         {item.title}
       </h2>
 
       {/* Facts */}
       <div className="space-y-2">
-        {Array.isArray(item.factsCN) &&
-          item.factsCN.map((s, i) => (
-            <p key={`cn-${i}`} className="text-[16px] leading-7 text-[var(--ami-text)]">
-              {s}
-            </p>
-          ))}
-        {Array.isArray(item.factsEN) &&
-          item.factsEN.map((s, i) => (
-            <p key={`en-${i}`} className="text-[16px] leading-7 text-[var(--ami-muted-1)]">
-              {s}
-            </p>
-          ))}
+        {Array.isArray(item.factsCN) && item.factsCN.map((s, i) => (
+          <p key={`cn-${i}`} className="text-[16px] leading-7 text-neutral-900">{s}</p>
+        ))}
+        {Array.isArray(item.factsEN) && item.factsEN.map((s, i) => (
+          <p key={`en-${i}`} className="text-[16px] leading-7 text-[color:var(--ami-muted-1)]">{s}</p>
+        ))}
       </div>
 
-      {/* Key info */}
+      {/* 关键信息 */}
       {item.keyInfo && <KeyInfoRow info={item.keyInfo} />}
 
-      {/* Image with skeleton, object-cover, click -> first source link */}
-      {resolved.src && (
-        <figure className="overflow-hidden rounded-2xl border border-[var(--ami-border)] bg-[var(--ami-bg-soft-1)]">
-          <a href={firstHref} target="_blank" rel="noreferrer" className="block">
-            {/* skeleton */}
-            {!loaded && <div className="ami-skeleton h-[240px] sm:h-[320px]"></div>}
-            <img
-              src={resolved.src}
-              alt={item.image?.alt || "image"}
-              loading="lazy"
-              onLoad={() => setLoaded(true)}
-              onError={(e) => {
-                if (!e.currentTarget.dataset.fallback) {
-                  e.currentTarget.dataset.fallback = "1";
-                  e.currentTarget.src = randomUnsplash(1200, 800);
-                } else {
-                  e.currentTarget.style.display = "none";
-                }
-              }}
-              className={cx(
-                "w-full object-cover",
-                // keep height consistent with skeleton; image will fill container
-                "h-[240px] sm:h-[320px]",
-                loaded ? "block" : "hidden"
-              )}
-            />
-          </a>
-        </figure>
-      )}
+      {/* 正文配图：骨架屏 + 懒加载 + 双重回退 + 点击跳转“本条新闻来源” */}
+      <ContentImage
+        src={src}
+        linkHref={href}
+        alt={item.image?.alt || "image"}
+        height={380}
+      />
 
-      {/* Links / Citations */}
+      {/* 链接列表（引用） */}
       {Array.isArray(item.links) && item.links.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {item.links.map((l, i) => (
-            <a
-              key={i}
-              href={l.url}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-1 rounded-full border border-[var(--ami-border)] px-3 py-1 text-xs hover:bg-[var(--ami-bg-soft-2)]"
-            >
-              <LinkIcon className="h-3.5 w-3.5" /> {l.label || "Link"}
+            <a key={i} href={l.url} target="_blank" rel="noreferrer"
+               className="inline-flex items-center gap-1 rounded-full border border-neutral-300 px-3 py-1 text-xs hover:bg-neutral-50">
+              <svg width="14" height="14" viewBox="0 0 24 24"><path fill="currentColor" d="M3.9 12a5 5 0 0 1 5-5h3v2h-3a3 3 0 1 0 0 6h3v2h-3a5 5 0 0 1-5-5Zm7-3h3a5 5 0 1 1 0 10h-3v-2h3a3 3 0 1 0 0-6h-3V9Z"/></svg>
+              {l.label || "来源"}
             </a>
           ))}
         </div>
@@ -653,17 +621,17 @@ function ItemBlock({ item, idx, isLast }) {
 
       {/* Why it matters */}
       {(item.whyCN || item.whyEN) && (
-        <div className="rounded-xl bg-[var(--ami-bg-soft-2)] p-4 text-[15px] text-[var(--ami-text)]">
+        <div className="rounded-xl bg-[var(--ami-bg-soft-2)] p-4 text-[15px] text-neutral-800">
           <div className="font-sans font-bold">这为什么重要 / Why it matters</div>
           {item.whyCN && <p className="mt-1 text-[15px]">{item.whyCN}</p>}
-          {item.whyEN && <p className="text-[15px] text-[var(--ami-muted-1)]">{item.whyEN}</p>}
+          {item.whyEN && <p className="text-[15px] text-[color:var(--ami-muted-1)]">{item.whyEN}</p>}
         </div>
       )}
 
-      {/* Divider */}
+      {/* 分割线 */}
       {!isLast && (
         <div className="py-12">
-          <hr className="border-[var(--ami-border)]" />
+          <hr className="border-neutral-200" />
         </div>
       )}
     </section>
